@@ -1,26 +1,115 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-ivory: #fff5f8;
+  --color-paper: #ffffff;
+  --color-ink: #2a1f2d;
+  --color-muted: #8b7a88;
+  --color-line: #f6e2eb;
+  --color-line-strong: #eccfdc;
+  --color-primary: #e2337f;
+  --color-primary-dark: #c41f66;
+  --color-primary-soft: #fde6f0;
+  --color-blush: #ff8fb8;
+  --color-gold: #f07b3f;
+  --color-gold-soft: #ffeee4;
+  --color-sage: #22a06b;
+  --color-sage-soft: #ddf5e9;
+  --color-violet: #8b5cf6;
+  --color-violet-soft: #efe8ff;
+  --color-sky: #4f7cf7;
+  --color-sky-soft: #e6eeff;
+  --color-danger: #e5484d;
+  --color-danger-soft: #ffe7e8;
+
+  --shadow-soft: 0 10px 30px -14px rgb(226 51 127 / 0.28), 0 2px 6px -2px rgb(42 31 45 / 0.05);
+  --shadow-pop: 0 16px 40px -12px rgb(226 51 127 / 0.45);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-fraunces), ui-serif, Georgia, serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background:
+    radial-gradient(60rem 40rem at 100% -10%, rgb(255 143 184 / 0.18), transparent 60%),
+    radial-gradient(50rem 30rem at -10% 110%, rgb(139 92 246 / 0.08), transparent 60%),
+    var(--color-ivory);
+  background-attachment: fixed;
+  color: var(--color-ink);
+}
+
+@utility font-display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Gradasi utama pink → magenta, dipakai tombol dan kartu hero */
+@utility bg-brand {
+  background-image: linear-gradient(135deg, #ff8fb8 0%, #e2337f 55%, #c41f66 100%);
+}
+
+@utility text-brand {
+  background-image: linear-gradient(90deg, #ff6fa6, #e2337f 60%, #a855f7);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Pola titik halus untuk latar dekoratif */
+.bg-kawung {
+  background-image: radial-gradient(circle, rgb(255 255 255 / 0.35) 1.5px, transparent 1.6px);
+  background-size: 18px 18px;
+}
+
+/* Bola mengilap (AI Advisor, hero) */
+.orb {
+  position: relative;
+  border-radius: 9999px;
+  background:
+    radial-gradient(circle at 30% 25%, rgb(255 255 255 / 0.95) 0 8%, transparent 22%),
+    radial-gradient(circle at 70% 75%, rgb(255 255 255 / 0.5) 0 6%, transparent 20%),
+    conic-gradient(from 200deg, #ffc2dc, #f6a8ff, #b9b4ff, #9ee6ff, #ffd1e6, #ffc2dc);
+  box-shadow:
+    inset -18px -24px 50px rgb(226 51 127 / 0.35),
+    inset 14px 18px 40px rgb(255 255 255 / 0.7),
+    0 30px 60px -20px rgb(226 51 127 / 0.5);
+  animation: orb-float 6s ease-in-out infinite;
+}
+
+.orb::after {
+  content: "";
+  position: absolute;
+  inset: 12%;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 60% 40%, rgb(255 255 255 / 0.25), transparent 60%);
+  filter: blur(6px);
+}
+
+@keyframes orb-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(8deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orb {
+    animation: none;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white;
+  }
 }

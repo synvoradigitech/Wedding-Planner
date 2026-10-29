@@ -1,36 +1,34 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Wedding Planner (prototipe UI)
 
-## Getting Started
+Prototipe aplikasi perencanaan pernikahan untuk pasangan di Indonesia, sesuai PRD. Nama brand masih nama kerja dan bisa diganti di `src/lib/brand.ts`.
 
-First, run the development server:
+## Menjalankan
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Buka http://localhost:3000, lalu pilih **Lihat demo Ayu & Raka** atau **Mulai gratis** (onboarding).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Halaman
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Rute | Isi |
+| --- | --- |
+| `/` | Landing page + harga |
+| `/onboarding` | Isi mempelai, tanggal, adat, agama, tamu, anggaran |
+| `/dashboard` | Hitung mundur, progres, tugas berikutnya, pembayaran, RSVP |
+| `/checklist` | Tugas per fase (H-n), filter, PIC |
+| `/anggaran` | Pos anggaran, vendor, DP/cicilan, pengeluaran kecil |
+| `/tamu` | Daftar tamu, impor CSV, tautan personal, share WhatsApp |
+| `/undangan` | Editor + pratinjau undangan, terbitkan (Premium) |
+| `/u/[slug]?to=[tamu]` | Undangan publik + RSVP tamu tanpa akun |
+| `/rundown` | Susunan acara per sesi, cetak/PDF |
+| `/advisor` | AI Advisor (jawaban contoh) |
+| `/pengaturan` | Profil pernikahan, kolaborator, paket, reset demo |
 
-## Learn More
+## Catatan prototipe
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Data disimpan di `localStorage` browser (`src/lib/store.ts`). RSVP dari tab undangan langsung tersinkron ke tab dashboard di browser yang sama.
+- Pembayaran Premium dan AI Advisor masih simulasi (`src/components/premium-modal.tsx`, `src/lib/advisor.ts`).
+- Template checklist, anggaran, dan rundown per adat/agama ada di `src/lib/templates.ts`.

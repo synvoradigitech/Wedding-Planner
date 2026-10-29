@@ -1,9 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  cacheComponents: true,
-  partialPrefetching: true,
+  // Prototipe menyimpan data di localStorage (dirender di browser), jadi Cache Components belum dipakai.
+  // Aktifkan lagi saat data pindah ke backend.
+  cacheComponents: false,
   turbopack: {
     rules: {
       "*.css": {
