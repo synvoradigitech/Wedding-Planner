@@ -1,4 +1,4 @@
-import { addDays, daysBetween, todayISO } from "./format";
+import { addDays, daysBetween, titleCase, todayISO } from "./format";
 import type { AppState, BudgetItem, Task, Wedding } from "./types";
 
 export function taskDue(task: Task, wedding: Wedding): string | null {
@@ -68,7 +68,7 @@ export function guestSummary(state: AppState) {
 }
 
 export function coupleName(w: Wedding) {
-  return `${w.brideName} & ${w.groomName}`;
+  return `${titleCase(w.brideName)} & ${titleCase(w.groomName)}`;
 }
 
 /** Tautan undangan publik; dengan tamu menjadi tautan personal (?to=). Hanya di browser. */

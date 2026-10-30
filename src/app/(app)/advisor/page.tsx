@@ -79,7 +79,7 @@ export default function AdvisorPage() {
         <div className="flex items-center gap-2">
           <Badge tone={left > 0 ? "primary" : "danger"}>{left}/{quota} tersisa</Badge>
           {messages.length > 0 && (
-            <button onClick={clearChat} className="flex h-9 w-9 items-center justify-center rounded-full bg-paper text-muted shadow-soft hover:text-primary" aria-label="Mulai percakapan baru">
+            <button onClick={clearChat} className="flex h-9 w-9 items-center justify-center rounded-full bg-paper text-muted sticker-sm hover:text-primary" aria-label="Mulai percakapan baru">
               <RotateCcw size={16} />
             </button>
           )}
@@ -104,7 +104,7 @@ export default function AdvisorPage() {
             ) : (
               <div key={m.id} className="flex items-end gap-2">
                 <div className="orb h-8 w-8 shrink-0 [animation:none]" />
-                <div className="max-w-[85%] rounded-3xl rounded-bl-lg bg-paper px-4 py-3 text-sm whitespace-pre-line shadow-soft">
+                <div className="max-w-[85%] rounded-3xl rounded-bl-lg bg-paper px-4 py-3 text-sm whitespace-pre-line sticker-sm">
                   {m.text}
                   {m.suggestions && (
                     <ul className="mt-3 space-y-1.5">
@@ -114,7 +114,7 @@ export default function AdvisorPage() {
                           <button
                             onClick={() => addToChecklist(s)}
                             disabled={added.includes(s)}
-                            className="flex shrink-0 items-center gap-1 rounded-full bg-paper px-2.5 py-1 text-[11px] font-semibold text-primary shadow-soft disabled:text-sage"
+                            className="flex shrink-0 items-center gap-1 rounded-full bg-paper px-2.5 py-1 text-[11px] font-semibold text-primary sticker-sm disabled:text-sage"
                           >
                             {added.includes(s) ? <Check size={12} /> : <Plus size={12} />}
                             {added.includes(s) ? "Ditambahkan" : "Checklist"}
@@ -130,7 +130,7 @@ export default function AdvisorPage() {
           {thinking && (
             <div className="flex items-end gap-2">
               <div className="orb h-8 w-8 shrink-0" />
-              <div className="flex gap-1 rounded-3xl rounded-bl-lg bg-paper px-4 py-3.5 shadow-soft">
+              <div className="flex gap-1 rounded-3xl rounded-bl-lg bg-paper px-4 py-3.5 sticker-sm">
                 {[0, 1, 2].map((i) => (
                   <span key={i} className="h-2 w-2 animate-bounce rounded-full bg-blush" style={{ animationDelay: `${i * 120}ms` }} />
                 ))}
@@ -147,13 +147,13 @@ export default function AdvisorPage() {
             <button
               key={label}
               onClick={() => ask(q)}
-              className="flex items-center gap-2 rounded-2xl bg-paper px-3 py-2.5 text-left text-xs font-semibold shadow-soft transition hover:text-primary"
+              className="flex items-center gap-2 rounded-2xl bg-paper px-3 py-2.5 text-left text-xs font-semibold sticker-sm transition hover:text-primary"
             >
               <Icon size={16} className="shrink-0 text-primary" /> {label}
             </button>
           ))}
         </div>
-        <form onSubmit={submit} className="flex items-center gap-2 rounded-full bg-paper p-1.5 pl-2 shadow-soft">
+        <form onSubmit={submit} className="flex items-center gap-2 rounded-full bg-paper p-1.5 pl-2 sticker-sm">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ivory text-muted">
             <Plus size={18} />
           </span>

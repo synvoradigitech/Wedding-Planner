@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Plus_Jakarta_Sans } from "next/font/google";
+import { Fraunces, Fredoka, Marcellus, Parisienne, Plus_Jakarta_Sans } from "next/font/google";
 import { APP_NAME, APP_TAGLINE } from "@/lib/brand";
 import "./globals.css";
 
@@ -14,6 +14,23 @@ const fraunces = Fraunces({
   style: ["normal", "italic"],
 });
 
+const fredoka = Fredoka({
+  variable: "--font-fredoka",
+  subsets: ["latin"],
+});
+
+const marcellus = Marcellus({
+  variable: "--font-marcellus-face",
+  subsets: ["latin"],
+  weight: "400",
+});
+
+const parisienne = Parisienne({
+  variable: "--font-parisienne-face",
+  subsets: ["latin"],
+  weight: "400",
+});
+
 export const metadata: Metadata = {
   title: { default: APP_NAME, template: `%s · ${APP_NAME}` },
   description: APP_TAGLINE,
@@ -25,8 +42,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="id" className={`${jakarta.variable} ${fraunces.variable} h-full antialiased`}>
-      <body className="min-h-full font-sans">{children}</body>
+    <html lang="id" suppressHydrationWarning className={`${jakarta.variable} ${fraunces.variable} ${fredoka.variable} ${marcellus.variable} ${parisienne.variable} h-full antialiased`}>
+      <body suppressHydrationWarning className="min-h-full font-sans">{children}</body>
     </html>
   );
 }

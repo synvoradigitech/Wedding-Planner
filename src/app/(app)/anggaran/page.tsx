@@ -92,7 +92,7 @@ export default function AnggaranPage() {
               const over = spent > b.allocated;
               const { icon: Icon, tone } = iconFor(b.category);
               return (
-                <button key={b.id} onClick={() => setDetail(b.id)} className="rounded-3xl bg-paper p-4 text-left shadow-soft transition hover:-translate-y-0.5">
+                <button key={b.id} onClick={() => setDetail(b.id)} className="rounded-3xl bg-paper p-4 text-left sticker-sm transition hover:-translate-y-0.5">
                   <div className="flex items-start justify-between">
                     <IconTile tone={over ? "danger" : tone}>
                       <Icon size={20} />

@@ -28,28 +28,75 @@
 
 @theme inline {
   --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fredoka), ui-rounded, system-ui, sans-serif;
   --font-serif: var(--font-fraunces), ui-serif, Georgia, serif;
+  --font-cute: var(--font-fredoka), ui-rounded, system-ui, sans-serif;
+  --font-marcellus: var(--font-marcellus-face), ui-serif, Georgia, serif;
+  --font-script: var(--font-parisienne-face), cursive;
+}
+
+/* Palet tema undangan Minang */
+@theme {
+  --color-minang-night: #3f0a1d;
+  --color-minang-maroon: #5a0f28;
+  --color-minang-wine: #7a1a3a;
+  --color-minang-rose: #b45f76;
+  --color-minang-blush: #ecd0d6;
+  --color-minang-gold: #e9b52a;
+  --color-minang-glow: #ffd97a;
+}
+
+/* Tenun songket halus sebagai latar */
+.bg-songket {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cg fill='none' stroke='%23ffd97a' stroke-opacity='.13'%3E%3Cpath d='M22 2 42 22 22 42 2 22Z'/%3E%3Cpath d='M22 11 33 22 22 33 11 22Z'/%3E%3C/g%3E%3Ccircle cx='22' cy='22' r='2' fill='%23ffd97a' fill-opacity='.16'/%3E%3C/svg%3E");
+}
+
+/* Palet permen untuk landing page */
+@theme {
+  --color-plum: #3b2340;
+  --color-candy-pink: #ff7eb0;
+  --color-candy-rose: #ffc2da;
+  --color-candy-yellow: #ffd45e;
+  --color-candy-mint: #7be3c4;
+  --color-candy-lilac: #c8b6ff;
+  --color-candy-sky: #8ed6ff;
+  --color-cream: #fff4f8;
+}
+
+@keyframes wiggle {
+  0%,
+  100% {
+    transform: rotate(-8deg) scale(1);
+  }
+  50% {
+    transform: rotate(8deg) scale(1.15);
+  }
+}
+
+/* Gaya stiker: garis tebal dan bayangan keras */
+@utility sticker {
+  border: 3px solid var(--color-plum);
+  box-shadow: 5px 5px 0 var(--color-plum);
+}
+
+@utility sticker-sm {
+  border: 2.5px solid var(--color-plum);
+  box-shadow: 3px 3px 0 var(--color-plum);
 }
 
 body {
-  background:
-    radial-gradient(60rem 40rem at 100% -10%, rgb(255 143 184 / 0.18), transparent 60%),
-    radial-gradient(50rem 30rem at -10% 110%, rgb(139 92 246 / 0.08), transparent 60%),
-    var(--color-ivory);
-  background-attachment: fixed;
+  background: var(--color-cream);
   color: var(--color-ink);
 }
 
 @utility font-display {
   font-family: var(--font-display);
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-weight: 600;
 }
 
 /* Gradasi utama pink → magenta, dipakai tombol dan kartu hero */
 @utility bg-brand {
-  background-image: linear-gradient(135deg, #ff8fb8 0%, #e2337f 55%, #c41f66 100%);
+  background-image: linear-gradient(135deg, #f0569a 0%, #e2337f 55%, #c41f66 100%);
 }
 
 @utility text-brand {

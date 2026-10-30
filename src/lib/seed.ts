@@ -1,4 +1,4 @@
-import { addDays, slugify, uid } from "./format";
+import { addDays, slugify, titleCase, uid } from "./format";
 import {
   BUDGET_CATEGORIES,
   RUNDOWN_TEMPLATES,
@@ -66,8 +66,8 @@ export function createFreshState(input: OnboardingInput): AppState {
   return {
     version: 1,
     wedding: {
-      brideName: input.brideName,
-      groomName: input.groomName,
+      brideName: titleCase(input.brideName.trim()),
+      groomName: titleCase(input.groomName.trim()),
       date: input.date,
       city: input.city,
       adat: input.adat,
@@ -102,7 +102,7 @@ export function createFreshState(input: OnboardingInput): AppState {
     members: [
       {
         id: "owner",
-        name: input.ownerName,
+        name: titleCase(input.ownerName.trim()),
         email: input.ownerEmail,
         role: "owner",
         modules: ["checklist", "anggaran", "tamu", "undangan", "rundown"],
@@ -233,6 +233,15 @@ export function createDemoState(): AppState {
     { id: uid(), name: "Fajar Nugroho", message: "Akhirnya! Ditunggu di Jogja ya, semoga lancar sampai hari H.", at: "2026-10-20T14:40:00.000Z" },
     { id: uid(), name: "Ibu Marni (RT 04)", message: "Mugi-mugi pinaringan berkah lan rukun salaminipun.", at: "2026-10-19T10:05:00.000Z" },
   ];
+
+  state.invitation.brideParents = "Putri dari Bapak Hendra Wijaya & Ibu Ratna Sari";
+  state.invitation.groomParents = "Putra dari Bapak Agus Santoso & Ibu Wulan Dewi";
+  state.invitation.story = [
+    { id: uid(), title: "Pertama bertemu", date: "Maret 2022", text: "Berawal dari acara kampus di Yogyakarta, obrolan singkat itu ternyata berlanjut sampai larut malam." },
+    { id: uid(), title: "Mulai bersama", date: "Agustus 2023", text: "Setelah setahun lebih berteman, kami memutuskan untuk melangkah bersama." },
+    { id: uid(), title: "Lamaran", date: "September 2026", text: "Disaksikan kedua keluarga, kami sepakat melanjutkan ke jenjang pernikahan." },
+  ];
+  state.invitation.gift = { bank: "BCA", number: "1234567890", holder: "Ayu Larasati" };
 
   state.advisor.used = 2;
   state.activity = [

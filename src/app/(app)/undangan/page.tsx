@@ -1,23 +1,25 @@
 "use client";
 
-import { CalendarDays, Check, Copy, Crown, ExternalLink, Eye, MapPin, Palette, Type } from "lucide-react";
-import { useState } from "react";
+import { CalendarDays, Check, Copy, Crown, ExternalLink, Eye, Gift, Heart, ImagePlus, MapPin, Palette, Plus, Trash2, Type, Users } from "lucide-react";
+import { useState, type ChangeEvent, type ReactNode } from "react";
 import { useApp } from "@/components/app-shell";
 import { InvitationView } from "@/components/invitation-view";
 import { PremiumModal } from "@/components/premium-modal";
-import { Card, Field, HeroCard, IconTile, Segmented, cn, inputClass } from "@/components/ui";
-import { formatDate } from "@/lib/format";
+import { Button, Card, Field, HeroCard, IconTile, Segmented, cn, inputClass } from "@/components/ui";
+import { formatDate, uid } from "@/lib/format";
+import { resizeImage } from "@/lib/image";
 import { inviteUrl } from "@/lib/selectors";
 import { updateState, withActivity } from "@/lib/store";
-import type { Invitation, InvitationTemplate, WeddingEvent } from "@/lib/types";
+import type { Invitation, InvitationPhotos, InvitationTemplate, StoryItem, WeddingEvent } from "@/lib/types";
 
 const TEMPLATES: { id: InvitationTemplate; name: string; desc: string; swatch: string; dot: string }[] = [
   { id: "melati", name: "Melati", desc: "Gading & emas", swatch: "from-[#fbf7f1] to-[#f3e3c8]", dot: "bg-[#8e3b4a]" },
   { id: "sage", name: "Sage", desc: "Hijau lembut", swatch: "from-[#eef3ee] to-[#cfe0d2]", dot: "bg-[#46664f]" },
   { id: "malam", name: "Malam", desc: "Navy & emas", swatch: "from-[#2a3146] to-[#1d2231]", dot: "bg-[#d9b46a]" },
+  { id: "minang", name: "Minang", desc: "Marun & emas, animasi", swatch: "from-[#7a1a3a] to-[#3f0a1d]", dot: "bg-[#e9b52a]" },
 ];
 
-type Tab = "desain" | "teks" | "acara" | "pratinjau";
+type Tab = "desain" | "detail" | "teks" | "acara" | "pratinjau";
 
 export default function UndanganPage() {
   const state = useApp();
@@ -107,6 +109,7 @@ export default function UndanganPage() {
             onChange={setTab}
             options={[
               { value: "desain", label: "Desain" },
+              ...(invitation.template === "minang" ? [{ value: "detail" as const, label: "Detail" }] : []),
               { value: "teks", label: "Teks" },
               { value: "acara", label: "Acara" },
               { value: "pratinjau", label: "Pratinjau" },
@@ -124,7 +127,7 @@ export default function UndanganPage() {
                 </IconTile>
                 <h2 className="font-bold">Pilih tema</h2>
               </div>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {TEMPLATES.map((tpl) => (
                   <button
                     key={tpl.id}
@@ -146,6 +149,8 @@ export default function UndanganPage() {
               </div>
             </Card>
           )}
+
+          {tab === "detail" && <MinangDetails invitation={invitation} patch={patch} />}
 
           {tab === "teks" && (
             <Card className="space-y-4 p-5">
@@ -224,6 +229,132 @@ export default function UndanganPage() {
       </div>
 
       <PremiumModal open={upsell} onClose={() => setUpsell(false)} reason="Menerbitkan undangan dan menerima RSVP adalah fitur Premium." />
+    </div>
+  );
+}
+
+function PhotoField({ label, value, onChange }: { label: string; value?: string; onChange: (src: string | undefined) => void }) {
+  async function pick(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (file) onChange(await resizeImage(file));
+  }
+
+  return (
+    <div>
+      <p className="mb-1.5 px-1 font-cute text-sm font-semibold text-plum">{label}</p>
+      <div className="relative aspect-square overflow-hidden rounded-2xl border-[2.5px] border-plum bg-cream">
+        {value ? (
+          // eslint-disable-next-line @next/next/no-img-element -- foto berupa data URL dari unggahan pengguna
+          <img src={value} alt={label} className="h-full w-full object-cover" />
+        ) : (
+          <label className="flex h-full cursor-pointer flex-col items-center justify-center gap-1 text-plum/60 hover:text-plum">
+            <ImagePlus size={24} />
+            <span className="text-xs font-semibold">Pilih foto</span>
+            <input type="file" accept="image/*" onChange={pick} className="sr-only" />
+          </label>
+        )}
+        {value && (
+          <button type="button" onClick={() => onChange(undefined)} className="absolute top-1.5 right-1.5 rounded-full border-2 border-plum bg-white p-1 text-plum" aria-label={`Hapus ${label}`}>
+            <Trash2 size={14} />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function DetailCard({ icon, tone, title, children }: { icon: ReactNode; tone: "primary" | "violet" | "gold" | "sky"; title: string; children: ReactNode }) {
+  return (
+    <Card className="space-y-4 p-5">
+      <div className="flex items-center gap-3">
+        <IconTile tone={tone} size="sm">
+          {icon}
+        </IconTile>
+        <h2 className="font-bold">{title}</h2>
+      </div>
+      {children}
+    </Card>
+  );
+}
+
+const MAX_GALLERY = 4;
+
+/** Isian tambahan khusus tema Minang. */
+function MinangDetails({ invitation, patch }: { invitation: Invitation; patch: (p: Partial<Invitation>) => void }) {
+  const photos = invitation.photos ?? {};
+  const story = invitation.story ?? [];
+  const gallery = photos.gallery ?? [];
+  const gift = invitation.gift ?? { bank: "", number: "", holder: "" };
+  const setPhotos = (p: Partial<InvitationPhotos>) => patch({ photos: { ...photos, ...p } });
+  const setStory = (id: string, p: Partial<StoryItem>) => patch({ story: story.map((s) => (s.id === id ? { ...s, ...p } : s)) });
+
+  return (
+    <div className="space-y-4">
+      <DetailCard icon={<Users size={16} />} tone="primary" title="Mempelai">
+        <Field label="Keterangan mempelai wanita">
+          <input value={invitation.brideParents ?? ""} onChange={(e) => patch({ brideParents: e.target.value })} placeholder="Putri dari Bapak ... & Ibu ..." className={inputClass} />
+        </Field>
+        <Field label="Keterangan mempelai pria">
+          <input value={invitation.groomParents ?? ""} onChange={(e) => patch({ groomParents: e.target.value })} placeholder="Putra dari Bapak ... & Ibu ..." className={inputClass} />
+        </Field>
+        <div className="grid grid-cols-3 gap-3">
+          <PhotoField label="Sampul" value={photos.cover} onChange={(cover) => setPhotos({ cover })} />
+          <PhotoField label="Wanita" value={photos.bride} onChange={(bride) => setPhotos({ bride })} />
+          <PhotoField label="Pria" value={photos.groom} onChange={(groom) => setPhotos({ groom })} />
+        </div>
+      </DetailCard>
+
+      <DetailCard icon={<ImagePlus size={16} />} tone="sky" title={`Galeri (maks. ${MAX_GALLERY} foto)`}>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {Array.from({ length: Math.min(gallery.length + 1, MAX_GALLERY) }, (_, i) => (
+            <PhotoField
+              key={i}
+              label={`Foto ${i + 1}`}
+              value={gallery[i]}
+              onChange={(src) => {
+                const next = [...gallery];
+                if (src) next[i] = src;
+                else next.splice(i, 1);
+                setPhotos({ gallery: next });
+              }}
+            />
+          ))}
+        </div>
+      </DetailCard>
+
+      <DetailCard icon={<Heart size={16} />} tone="violet" title="Kisah kami">
+        {story.map((s) => (
+          <div key={s.id} className="space-y-2 rounded-2xl bg-cream p-3">
+            <div className="grid grid-cols-[1fr_1fr_auto] gap-2">
+              <input value={s.title} onChange={(e) => setStory(s.id, { title: e.target.value })} placeholder="Judul" aria-label="Judul kisah" className={inputClass} />
+              <input value={s.date} onChange={(e) => setStory(s.id, { date: e.target.value })} placeholder="Waktu" aria-label="Waktu kisah" className={inputClass} />
+              <button type="button" onClick={() => patch({ story: story.filter((x) => x.id !== s.id) })} className="rounded-xl p-2 text-plum/60 hover:text-danger" aria-label={`Hapus ${s.title || "kisah"}`}>
+                <Trash2 size={16} />
+              </button>
+            </div>
+            <textarea rows={2} value={s.text} onChange={(e) => setStory(s.id, { text: e.target.value })} placeholder="Ceritakan singkat" aria-label="Isi kisah" className={inputClass} />
+          </div>
+        ))}
+        <Button type="button" size="sm" variant="secondary" onClick={() => patch({ story: [...story, { id: uid(), title: "", date: "", text: "" }] })}>
+          <Plus size={14} /> Tambah kisah
+        </Button>
+      </DetailCard>
+
+      <DetailCard icon={<Gift size={16} />} tone="gold" title="Rekening hadiah">
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Field label="Bank">
+            <input value={gift.bank} onChange={(e) => patch({ gift: { ...gift, bank: e.target.value } })} placeholder="BCA" className={inputClass} />
+          </Field>
+          <Field label="Nomor rekening">
+            <input inputMode="numeric" value={gift.number} onChange={(e) => patch({ gift: { ...gift, number: e.target.value } })} className={inputClass} />
+          </Field>
+          <Field label="Atas nama">
+            <input value={gift.holder} onChange={(e) => patch({ gift: { ...gift, holder: e.target.value } })} className={inputClass} />
+          </Field>
+        </div>
+        <p className="text-xs font-medium text-plum/60">Kosongkan nomor rekening kalau tidak ingin menampilkan bagian hadiah.</p>
+      </DetailCard>
     </div>
   );
 }

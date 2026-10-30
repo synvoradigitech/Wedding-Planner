@@ -2,24 +2,23 @@
 
 import { X } from "lucide-react";
 import { useEffect, type ButtonHTMLAttributes, type ReactNode } from "react";
+import { cn } from "@/lib/cn";
 import { initials } from "@/lib/format";
 
-export function cn(...classes: (string | false | null | undefined)[]) {
-  return classes.filter(Boolean).join(" ");
-}
+export { cn };
 
 export function Card({ className, children }: { className?: string; children: ReactNode }) {
-  return <div className={cn("rounded-3xl bg-paper shadow-soft", className)}>{children}</div>;
+  return <div className={cn("sticker-sm rounded-3xl bg-paper", className)}>{children}</div>;
 }
 
 type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "gold";
 
 const buttonVariants: Record<ButtonVariant, string> = {
-  primary: "bg-brand text-white shadow-pop hover:brightness-105",
-  secondary: "bg-paper text-ink shadow-soft ring-1 ring-line hover:bg-primary-soft/40",
-  ghost: "text-muted hover:bg-primary-soft/60 hover:text-primary",
+  primary: "sticker-sm bg-candy-pink text-plum hover:-translate-y-0.5 hover:bg-[#ff93bd]",
+  secondary: "sticker-sm bg-paper text-plum hover:-translate-y-0.5 hover:bg-cream",
+  ghost: "text-plum/70 hover:bg-candy-rose/50 hover:text-plum",
   danger: "text-danger hover:bg-danger-soft",
-  gold: "bg-gradient-to-br from-[#ffa36c] to-gold text-white shadow-[0_14px_30px_-12px_rgb(240_123_63/0.6)] hover:brightness-105",
+  gold: "sticker-sm bg-candy-yellow text-plum hover:-translate-y-0.5",
 };
 
 export function Button({
@@ -32,8 +31,8 @@ export function Button({
     <button
       {...props}
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-full font-semibold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none",
-        size === "sm" ? "h-8 px-3 text-xs" : "h-11 px-5 text-sm",
+        "inline-flex items-center justify-center gap-2 rounded-full font-cute font-semibold transition active:translate-y-0.5 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50",
+        size === "sm" ? "h-8 px-3 text-sm" : "h-11 px-5 text-base",
         buttonVariants[variant],
         className,
       )}
@@ -44,13 +43,23 @@ export function Button({
 export type Tone = "neutral" | "primary" | "gold" | "sage" | "danger" | "violet" | "sky";
 
 const badgeTones: Record<Tone, string> = {
-  neutral: "bg-line/70 text-muted",
-  primary: "bg-primary-soft text-primary",
-  gold: "bg-gold-soft text-gold",
-  sage: "bg-sage-soft text-sage",
+  neutral: "bg-line/70 text-plum/70",
+  primary: "bg-candy-rose/70 text-plum",
+  gold: "bg-candy-yellow/70 text-plum",
+  sage: "bg-candy-mint/70 text-plum",
   danger: "bg-danger-soft text-danger",
-  violet: "bg-violet-soft text-violet",
-  sky: "bg-sky-soft text-sky",
+  violet: "bg-candy-lilac/70 text-plum",
+  sky: "bg-candy-sky/70 text-plum",
+};
+
+const tileTones: Record<Tone, string> = {
+  neutral: "bg-cream",
+  primary: "bg-candy-rose",
+  gold: "bg-candy-yellow",
+  sage: "bg-candy-mint",
+  danger: "bg-[#ffb0a8]",
+  violet: "bg-candy-lilac",
+  sky: "bg-candy-sky",
 };
 
 export function Badge({ tone = "neutral", className, children }: { tone?: Tone; className?: string; children: ReactNode }) {
@@ -66,9 +75,9 @@ export function IconTile({ tone = "primary", size = "md", children }: { tone?: T
   return (
     <span
       className={cn(
-        "inline-flex shrink-0 items-center justify-center",
+        "inline-flex shrink-0 items-center justify-center border-[2.5px] border-plum text-plum",
         size === "sm" ? "h-8 w-8 rounded-xl" : size === "md" ? "h-11 w-11 rounded-2xl" : "h-14 w-14 rounded-[1.25rem]",
-        badgeTones[tone],
+        tileTones[tone],
       )}
     >
       {children}
@@ -78,18 +87,18 @@ export function IconTile({ tone = "primary", size = "md", children }: { tone?: T
 
 const barTones: Record<Tone, string> = {
   neutral: "bg-muted",
-  primary: "bg-brand",
-  gold: "bg-gradient-to-r from-[#ffb07c] to-gold",
-  sage: "bg-gradient-to-r from-[#5fd39b] to-sage",
+  primary: "bg-candy-pink",
+  gold: "bg-candy-yellow",
+  sage: "bg-candy-mint",
   danger: "bg-danger",
-  violet: "bg-violet",
-  sky: "bg-sky",
+  violet: "bg-candy-lilac",
+  sky: "bg-candy-sky",
 };
 
 export function Progress({ value, tone = "primary", className }: { value: number; tone?: Tone; className?: string }) {
   const pct = Math.max(0, Math.min(100, value));
   return (
-    <div className={cn("h-2 overflow-hidden rounded-full bg-primary-soft/70", className)}>
+    <div className={cn("h-3 overflow-hidden rounded-full border-2 border-plum bg-white", className)}>
       <div className={cn("h-full rounded-full transition-all", barTones[tone])} style={{ width: `${pct}%` }} />
     </div>
   );
@@ -166,7 +175,7 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="flex max-h-[90vh] w-full flex-col rounded-t-[2rem] bg-paper shadow-2xl sm:max-w-lg sm:rounded-[2rem]"
+        className="sticker flex max-h-[90vh] w-full flex-col rounded-t-[2rem] bg-paper sm:max-w-lg sm:rounded-[2rem]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mx-auto mt-2 h-1.5 w-10 rounded-full bg-line sm:hidden" />
@@ -186,7 +195,7 @@ export function Modal({
 export function Field({ label, hint, children, className }: { label: string; hint?: string; children: ReactNode; className?: string }) {
   return (
     <label className={cn("block", className)}>
-      <span className="mb-1.5 block text-xs font-semibold text-muted">{label}</span>
+      <span className="mb-1.5 block px-1 font-cute text-sm font-semibold text-plum">{label}</span>
       {children}
       {hint && <span className="mt-1 block text-xs text-muted">{hint}</span>}
     </label>
@@ -194,16 +203,16 @@ export function Field({ label, hint, children, className }: { label: string; hin
 }
 
 export const inputClass =
-  "w-full rounded-2xl border border-transparent bg-ivory px-4 py-2.5 text-sm text-ink placeholder:text-muted/70 focus:border-primary/40 focus:bg-paper focus:ring-4 focus:ring-primary/10 focus:outline-none disabled:opacity-60";
+  "w-full rounded-2xl border-[2.5px] border-plum bg-white px-4 py-2.5 text-sm font-semibold text-plum placeholder:font-medium placeholder:text-plum/40 focus:bg-[#fffbe8] focus:outline-none disabled:opacity-60";
 
-const avatarColors = ["bg-gradient-to-br from-[#ffb3cf] to-primary text-white", "bg-gradient-to-br from-[#c4b5fd] to-violet text-white", "bg-gradient-to-br from-[#ffc9a3] to-gold text-white"];
+const avatarColors = ["bg-candy-rose", "bg-candy-sky", "bg-candy-lilac"];
 
 export function Avatar({ name, index = 0, size = "md" }: { name: string; index?: number; size?: "sm" | "md" | "lg" }) {
   return (
     <span
       title={name}
       className={cn(
-        "inline-flex shrink-0 items-center justify-center rounded-full font-bold ring-2 ring-paper",
+        "inline-flex shrink-0 items-center justify-center rounded-full border-2 border-plum font-bold text-plum",
         size === "sm" ? "h-6 w-6 text-[10px]" : size === "md" ? "h-8 w-8 text-xs" : "h-11 w-11 text-sm",
         avatarColors[index % avatarColors.length],
       )}
@@ -233,8 +242,8 @@ export function CheckButton({ checked, onClick, label }: { checked: boolean; onC
       aria-pressed={checked}
       aria-label={label}
       className={cn(
-        "flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 transition",
-        checked ? "border-transparent bg-brand text-white shadow-pop" : "border-line-strong text-transparent hover:border-primary hover:text-primary",
+        "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-[2.5px] transition active:scale-90",
+        checked ? "border-plum bg-candy-pink text-plum" : "border-plum bg-white text-transparent hover:text-plum/40",
       )}
     >
       <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
@@ -263,7 +272,7 @@ export function ProgressRing({ value, size = 88, children }: { value: number; si
 /** Kartu hero bergradasi untuk bagian atas halaman. */
 export function HeroCard({ className, children }: { className?: string; children: ReactNode }) {
   return (
-    <section className={cn("relative overflow-hidden rounded-[2rem] bg-brand p-5 text-white shadow-pop sm:p-6", className)}>
+    <section className={cn("sticker relative overflow-hidden rounded-[2rem] bg-brand p-5 text-white sm:p-6", className)}>
       <div className="bg-kawung pointer-events-none absolute inset-0 opacity-40" />
       <div className="relative">{children}</div>
     </section>
@@ -271,7 +280,7 @@ export function HeroCard({ className, children }: { className?: string; children
 }
 
 export function SectionLabel({ children }: { children: ReactNode }) {
-  return <h2 className="mb-2.5 inline-flex rounded-full bg-paper px-3 py-1 text-[11px] font-bold tracking-wide text-primary uppercase shadow-soft">{children}</h2>;
+  return <h2 className="mb-2.5 inline-flex rounded-full border-2 border-plum bg-candy-yellow px-3 py-0.5 font-cute text-sm font-semibold text-plum">{children}</h2>;
 }
 
 export function Segmented<T extends string>({
@@ -286,14 +295,14 @@ export function Segmented<T extends string>({
   className?: string;
 }) {
   return (
-    <div className={cn("flex gap-1 overflow-x-auto rounded-full bg-paper p-1 shadow-soft [scrollbar-width:none]", className)}>
+    <div className={cn("sticker-sm flex gap-1 overflow-x-auto rounded-full bg-paper p-1 [scrollbar-width:none]", className)}>
       {options.map((o) => (
         <button
           key={o.value}
           onClick={() => onChange(o.value)}
           className={cn(
-            "flex-1 rounded-full px-4 py-2 text-xs font-semibold whitespace-nowrap transition",
-            value === o.value ? "bg-brand text-white shadow-pop" : "text-muted hover:text-ink",
+            "flex-1 rounded-full px-4 py-1.5 font-cute text-sm font-semibold whitespace-nowrap transition",
+            value === o.value ? "bg-candy-pink text-plum" : "text-plum/60 hover:text-plum",
           )}
         >
           {o.label}

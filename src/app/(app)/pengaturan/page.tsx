@@ -75,7 +75,7 @@ export default function PengaturanPage() {
             <p className="text-sm text-muted">Prototipe ini menyimpan data di browser. Kembalikan ke contoh Ayu &amp; Raka, atau mulai dari onboarding.</p>
           </div>
           <div className="flex gap-2">
-            <Link href="/onboarding" className="inline-flex h-11 items-center rounded-full bg-paper px-5 text-sm font-semibold shadow-soft ring-1 ring-line hover:bg-primary-soft/40">
+            <Link href="/onboarding" className="inline-flex h-11 items-center rounded-full bg-paper px-5 text-sm font-semibold sticker-sm ring-1 ring-line hover:bg-primary-soft/40">
               Onboarding baru
             </Link>
             <Button variant="secondary" onClick={() => confirm("Ganti semua data dengan data demo?") && resetDemo()}>

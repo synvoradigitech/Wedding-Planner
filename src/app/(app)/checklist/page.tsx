@@ -122,7 +122,7 @@ export default function ChecklistPage() {
               onClick={() => setPic(m.id)}
               className={cn(
                 "flex shrink-0 items-center gap-2 rounded-full py-1 pr-3.5 pl-1 text-xs font-semibold transition",
-                pic === m.id ? "bg-ink text-white" : "bg-paper text-muted shadow-soft",
+                pic === m.id ? "bg-ink text-white" : "bg-paper text-muted sticker-sm",
                 m.id === "semua" && "pl-3.5",
               )}
             >
@@ -160,7 +160,7 @@ export default function ChecklistPage() {
                       <span className={cn("rounded-full px-1.5 font-bold", late ? "bg-danger-soft" : "bg-primary-soft text-primary")}>
                         {hLabel(taskDaysBefore(t, wedding))}
                       </span>
-                      {formatDate(taskDue(t, wedding))}
+                      {taskDue(t, wedding) && formatDate(taskDue(t, wedding))}
                     </p>
                   </button>
                   {memberIndex >= 0 && <Avatar name={state.members[memberIndex].name} index={memberIndex} size="sm" />}

@@ -13,6 +13,7 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
+import { MotionConfig } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
@@ -21,6 +22,8 @@ import { daysBetween, todayISO } from "@/lib/format";
 import { coupleName } from "@/lib/selectors";
 import { useStoreState } from "@/lib/store";
 import type { AppState } from "@/lib/types";
+import { Couple, Heart } from "./landing/characters";
+import { ConfettiLayer, motion } from "./landing/fx";
 import { Avatar, cn } from "./ui";
 
 export const NAV = [
@@ -63,7 +66,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   if (!state) {
     return (
-      <div className="flex min-h-screen items-center justify-center text-primary">
+      <div className="flex min-h-screen items-center justify-center bg-cream text-primary">
         <LoaderCircle className="animate-spin" />
       </div>
     );
@@ -77,90 +80,103 @@ export function AppShell({ children }: { children: ReactNode }) {
   const mobileItem = ({ href, label, icon: Icon }: (typeof NAV)[number]) => {
     const active = isActive(href);
     return (
-      <Link key={href} href={href} className={cn("flex flex-col items-center gap-1 py-2.5 text-[10px] font-semibold", active ? "text-primary" : "text-muted")}>
-        <Icon size={21} strokeWidth={active ? 2.4 : 1.8} />
+      <Link key={href} href={href} className={cn("flex flex-col items-center gap-0.5 py-2 font-cute text-[11px] font-semibold", active ? "text-plum" : "text-plum/55")}>
+        <span className={cn("flex h-7 w-11 items-center justify-center rounded-full transition", active && "bg-candy-rose")}>
+          <Icon size={19} strokeWidth={active ? 2.6 : 2} />
+        </span>
         {label}
       </Link>
     );
   };
 
   return (
-    <div className="min-h-screen lg:flex">
-      <aside className="no-print sticky top-0 hidden h-screen w-72 shrink-0 p-4 lg:block">
-        <div className="flex h-full flex-col rounded-[2rem] bg-paper shadow-soft">
-          <div className="px-5 pt-6 pb-4">
-            <Link href="/" className="text-brand text-lg font-extrabold tracking-tight">
+    <MotionConfig reducedMotion="user">
+      <ConfettiLayer />
+      <div className="min-h-screen lg:flex">
+        <aside className="no-print sticky top-0 hidden h-screen w-64 shrink-0 p-3 lg:block">
+          <div className="sticker flex h-full flex-col overflow-y-auto rounded-[2rem] bg-paper [scrollbar-width:none]">
+            <div className="px-4 pt-4 pb-2">
+              <Link href="/" className="flex items-center gap-2 font-cute text-lg font-semibold text-plum">
+                <Heart className="w-6 animate-[wiggle_1.6s_ease-in-out_infinite]" />
+                {APP_NAME}
+              </Link>
+              <div className="mt-3 flex items-center gap-2 rounded-2xl border-[2.5px] border-plum bg-candy-rose p-2.5">
+                <Couple className="w-12 shrink-0" />
+                <div className="min-w-0">
+                  <p className="line-clamp-2 font-cute text-sm leading-tight font-semibold break-words text-plum">{coupleName(state.wedding)}</p>
+                  <Countdown state={state} className="block text-[11px] leading-tight font-bold text-plum/70" />
+                </div>
+              </div>
+            </div>
+            <nav className="flex-1 space-y-0.5 px-3 py-1">
+              {NAV.map(({ href, label, icon: Icon }) => {
+                const active = isActive(href);
+                return (
+                  <Link key={href} href={href} className="relative block">
+                    {active && (
+                      <motion.span
+                        layoutId="nav-active"
+                        className="absolute inset-0 rounded-2xl border-[2.5px] border-plum bg-candy-pink shadow-[2px_2px_0_#3b2340]"
+                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                      />
+                    )}
+                    <span className={cn("relative flex items-center gap-3 rounded-2xl px-3.5 py-2 font-cute text-[15px] font-semibold transition", active ? "text-plum" : "text-plum/65 hover:bg-cream hover:text-plum")}>
+                      <Icon size={18} strokeWidth={2.4} />
+                      {label}
+                    </span>
+                  </Link>
+                );
+              })}
+            </nav>
+            <div className="space-y-2.5 px-3 pt-1 pb-3">
+              <div className="flex -space-x-2 px-1">
+                {state.members.map((m, i) => (
+                  <Avatar key={m.id} name={m.name} index={i} />
+                ))}
+              </div>
+              {state.wedding.plan === "premium" ? (
+                <p className="flex items-center gap-1.5 rounded-2xl border-[2.5px] border-plum bg-candy-yellow px-3 py-2 font-cute text-sm font-semibold text-plum">
+                  <Crown size={15} /> Premium aktif
+                </p>
+              ) : (
+                <Link href="/pengaturan#paket" className="sticker-sm flex items-center gap-2 rounded-2xl bg-candy-yellow px-3 py-2 font-cute text-sm font-semibold text-plum transition hover:-translate-y-0.5">
+                  <Crown size={15} /> Upgrade ke Premium
+                </Link>
+              )}
+            </div>
+          </div>
+        </aside>
+
+        <div className="flex min-w-0 flex-1 flex-col">
+          <header className="no-print sticky top-0 z-30 flex items-center justify-between border-b-[2.5px] border-plum bg-white/95 px-4 py-2.5 backdrop-blur lg:hidden">
+            <Link href="/dashboard" className="flex items-center gap-2 font-cute text-base font-semibold text-plum">
+              <Heart className="w-5 animate-[wiggle_1.6s_ease-in-out_infinite]" />
               {APP_NAME}
             </Link>
-            <div className="relative mt-5 overflow-hidden rounded-3xl bg-brand p-4 text-white shadow-pop">
-              <div className="orb absolute -top-6 -right-6 h-20 w-20 opacity-80" />
-              <p className="relative text-xs text-white/80">Rencana pernikahan</p>
-              <p className="relative text-lg font-bold">{coupleName(state.wedding)}</p>
-              <Countdown state={state} className="relative mt-2 inline-block rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-semibold" />
-            </div>
-          </div>
-          <nav className="flex-1 space-y-1 overflow-y-auto px-3">
-            {NAV.map(({ href, label, icon: Icon }) => (
-              <Link
-                key={href}
-                href={href}
-                className={cn(
-                  "flex items-center gap-3 rounded-2xl px-4 py-2.5 text-sm font-semibold transition",
-                  isActive(href) ? "bg-brand text-white shadow-pop" : "text-muted hover:bg-primary-soft/60 hover:text-primary",
-                )}
-              >
-                <Icon size={18} />
-                {label}
-              </Link>
-            ))}
-          </nav>
-          <div className="space-y-3 p-4">
-            <div className="flex -space-x-2 px-1">
-              {state.members.map((m, i) => (
-                <Avatar key={m.id} name={m.name} index={i} />
-              ))}
-            </div>
-            {state.wedding.plan === "premium" ? (
-              <p className="flex items-center gap-1.5 rounded-2xl bg-gold-soft px-4 py-2.5 text-xs font-bold text-gold">
-                <Crown size={14} /> Premium aktif
-              </p>
-            ) : (
-              <Link
-                href="/pengaturan#paket"
-                className="flex items-center gap-2 rounded-2xl bg-gradient-to-br from-[#ffa36c] to-gold px-4 py-3 text-xs font-bold text-white shadow-[0_14px_30px_-12px_rgb(240_123_63/0.6)]"
-              >
-                <Crown size={15} /> Upgrade ke Premium
-              </Link>
-            )}
-          </div>
-        </div>
-      </aside>
-
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="no-print sticky top-0 z-30 flex items-center justify-between bg-ivory/80 px-5 py-3 backdrop-blur-lg lg:hidden">
-          <Link href="/dashboard" className="text-brand text-base font-extrabold tracking-tight">
-            {APP_NAME}
-          </Link>
-          <Countdown state={state} className="rounded-full bg-paper px-3 py-1 text-xs font-bold text-primary shadow-soft" />
-        </header>
-        <main className="mx-auto w-full max-w-6xl flex-1 px-5 pt-4 pb-32 sm:px-6 lg:px-8 lg:pt-8 lg:pb-12">{children}</main>
-      </div>
-
-      <nav className="no-print fixed inset-x-3 bottom-3 z-30 grid grid-cols-5 items-end rounded-[1.75rem] bg-paper/95 px-1 shadow-[0_10px_40px_-10px_rgb(226_51_127/0.35)] backdrop-blur lg:hidden">
-        {MOBILE_LEFT.map(mobileItem)}
-        <Link href="/advisor" className="flex flex-col items-center pb-2.5" aria-label="AI Advisor">
-          <span
-            className={cn(
-              "-mt-7 flex h-14 w-14 items-center justify-center rounded-full bg-brand text-white shadow-pop ring-4 ring-ivory transition",
-              isActive("/advisor") && "scale-105",
-            )}
+            <Countdown state={state} className="rounded-full border-2 border-plum bg-candy-yellow px-2.5 py-0.5 font-cute text-xs font-semibold text-plum" />
+          </header>
+          <motion.main
+            key={pathname}
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            className="mx-auto w-full max-w-6xl flex-1 px-4 pt-4 pb-32 sm:px-6 lg:px-6 lg:pt-5 lg:pb-10"
           >
-            <Sparkles size={24} />
-          </span>
-          <span className={cn("mt-1 text-[10px] font-semibold", isActive("/advisor") ? "text-primary" : "text-muted")}>AI</span>
-        </Link>
-        {MOBILE_RIGHT.map(mobileItem)}
-      </nav>
-    </div>
+            {children}
+          </motion.main>
+        </div>
+
+        <nav className="no-print sticker-sm fixed inset-x-3 bottom-3 z-30 grid grid-cols-5 items-end rounded-[1.75rem] bg-white px-1 lg:hidden">
+          {MOBILE_LEFT.map(mobileItem)}
+          <Link href="/advisor" className="flex flex-col items-center pb-2" aria-label="AI Advisor">
+            <motion.span whileTap={{ scale: 0.9 }} className={cn("sticker-sm -mt-6 flex h-13 w-13 items-center justify-center rounded-full text-plum", isActive("/advisor") ? "bg-candy-yellow" : "bg-candy-pink")}>
+              <Sparkles size={23} strokeWidth={2.4} />
+            </motion.span>
+            <span className={cn("mt-0.5 font-cute text-[11px] font-semibold", isActive("/advisor") ? "text-plum" : "text-plum/55")}>AI</span>
+          </Link>
+          {MOBILE_RIGHT.map(mobileItem)}
+        </nav>
+      </div>
+    </MotionConfig>
   );
 }

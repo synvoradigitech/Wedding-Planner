@@ -1,13 +1,19 @@
 "use client";
 
 import { CalendarDays, Clock, Heart, MapPin } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
 import { APP_NAME } from "@/lib/brand";
-import { daysBetween, formatDate, todayISO } from "@/lib/format";
+import { daysBetween, formatDate, titleCase, todayISO } from "@/lib/format";
 import type { AppState, Guest, InvitationTemplate } from "@/lib/types";
+import { RsvpForm, type RsvpInput } from "./invitation-rsvp";
+import { MinangInvitation } from "./invitation/minang";
 import { cn } from "./ui";
 
-const THEMES: Record<InvitationTemplate, { page: string; panel: string; accent: string; muted: string; button: string; line: string; field: string }> = {
+export type { RsvpInput };
+
+type ClassicTemplate = Exclude<InvitationTemplate, "minang">;
+
+const THEMES: Record<ClassicTemplate, { page: string; panel: string; accent: string; muted: string; button: string; line: string; field: string }> = {
   melati: {
     page: "bg-[#fbf7f1] text-[#2b2320]",
     panel: "bg-white/80 border-[#ece2d6]",
@@ -37,26 +43,20 @@ const THEMES: Record<InvitationTemplate, { page: string; panel: string; accent: 
   },
 };
 
-export interface RsvpInput {
-  name: string;
-  attending: boolean;
-  count: number;
-  message: string;
-}
-
-export function InvitationView({
-  state,
-  guest,
-  mode,
-  onRsvp,
-}: {
+interface InvitationProps {
   state: AppState;
   guest?: Guest | null;
   mode: "preview" | "live";
   onRsvp?: (input: RsvpInput) => void;
-}) {
+}
+
+export function InvitationView(props: InvitationProps) {
+  return props.state.invitation.template === "minang" ? <MinangInvitation {...props} /> : <ClassicInvitation {...props} />;
+}
+
+function ClassicInvitation({ state, guest, mode, onRsvp }: InvitationProps) {
   const { wedding, invitation, events } = state;
-  const t = THEMES[invitation.template];
+  const t = THEMES[invitation.template as ClassicTemplate];
   const [opened, setOpened] = useState(mode === "preview");
   const daysLeft = wedding.date ? daysBetween(todayISO(), wedding.date) : null;
   const visibleEvents = guest ? events.filter((e) => guest.eventIds.includes(e.id)) : events;
@@ -73,9 +73,9 @@ export function InvitationView({
         <div className="relative">
           <p className={cn("text-xs tracking-[0.3em] uppercase", t.muted)}>Undangan Pernikahan</p>
           <h1 className={cn("mt-6 font-serif text-5xl leading-tight font-medium italic", t.accent)}>
-            {wedding.brideName}
+            {titleCase(wedding.brideName)}
             <span className="block text-3xl not-italic">&amp;</span>
-            {wedding.groomName}
+            {titleCase(wedding.groomName)}
           </h1>
           <div className={cn("mx-auto my-6 h-px w-16", t.line)} />
           <p className="text-sm">{formatDate(wedding.date, "weekday")}</p>
@@ -98,7 +98,7 @@ export function InvitationView({
           <section className="mx-auto max-w-md text-center">
             <p className="text-sm leading-relaxed">{invitation.opening}</p>
             <p className={cn("mt-6 font-serif text-3xl italic", t.accent)}>
-              {wedding.brideName} &amp; {wedding.groomName}
+              {titleCase(wedding.brideName)} &amp; {titleCase(wedding.groomName)}
             </p>
           </section>
 
@@ -157,7 +157,7 @@ export function InvitationView({
             <p className="text-sm leading-relaxed">{invitation.closing}</p>
             <Heart className={cn("mx-auto mt-6", t.accent)} size={20} />
             <p className={cn("mt-2 font-serif text-2xl italic", t.accent)}>
-              {wedding.brideName} &amp; {wedding.groomName}
+              {titleCase(wedding.brideName)} &amp; {titleCase(wedding.groomName)}
             </p>
           </section>
 
@@ -165,76 +165,5 @@ export function InvitationView({
         </div>
       )}
     </div>
-  );
-}
-
-function RsvpForm({
-  guest,
-  mode,
-  theme: t,
-  onRsvp,
-}: {
-  guest?: Guest | null;
-  mode: "preview" | "live";
-  theme: (typeof THEMES)[InvitationTemplate];
-  onRsvp?: (input: RsvpInput) => void;
-}) {
-  const answered = guest && guest.rsvp.status !== "pending";
-  const [name, setName] = useState(guest?.name ?? "");
-  const [attending, setAttending] = useState(guest?.rsvp.status !== "tidak");
-  const [count, setCount] = useState(Math.max(1, guest?.rsvp.count || guest?.pax || 1));
-  const [message, setMessage] = useState("");
-  const [sent, setSent] = useState(false);
-  const maxPax = guest?.pax ?? 4;
-  const disabled = mode === "preview";
-
-  function submit(e: FormEvent) {
-    e.preventDefault();
-    if (disabled || !name.trim()) return;
-    onRsvp?.({ name: name.trim(), attending, count: attending ? count : 0, message: message.trim() });
-    setSent(true);
-  }
-
-  const fieldClass = cn("w-full rounded-xl border px-3 py-2 text-sm focus:outline-none", t.field);
-
-  return (
-    <section className={cn("mx-auto max-w-md rounded-3xl border px-6 py-6", t.panel)}>
-      <h3 className={cn("text-center font-serif text-2xl", t.accent)}>Konfirmasi kehadiran</h3>
-      {sent ? (
-        <p className="mt-4 text-center text-sm">Terima kasih! Konfirmasi Anda sudah kami terima.</p>
-      ) : (
-        <form onSubmit={submit} className="mt-4 space-y-3">
-          {answered && <p className={cn("text-center text-xs", t.muted)}>Anda sudah mengonfirmasi. Kirim lagi untuk mengubah jawaban.</p>}
-          {!guest && <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nama Anda" className={fieldClass} disabled={disabled} />}
-          <div className="grid grid-cols-2 gap-2">
-            {[true, false].map((v) => (
-              <button
-                type="button"
-                key={String(v)}
-                disabled={disabled}
-                onClick={() => setAttending(v)}
-                className={cn("rounded-xl border px-3 py-2 text-sm font-medium", attending === v ? t.button : t.field)}
-              >
-                {v ? "Hadir" : "Tidak hadir"}
-              </button>
-            ))}
-          </div>
-          {attending && (
-            <select value={count} onChange={(e) => setCount(Number(e.target.value))} className={fieldClass} disabled={disabled} aria-label="Jumlah orang">
-              {Array.from({ length: maxPax }, (_, i) => i + 1).map((n) => (
-                <option key={n} value={n}>
-                  {n} orang
-                </option>
-              ))}
-            </select>
-          )}
-          <textarea value={message} onChange={(e) => setMessage(e.target.value)} rows={3} placeholder="Tulis ucapan dan doa (opsional)" className={fieldClass} disabled={disabled} />
-          <button type="submit" disabled={disabled} className={cn("w-full rounded-full py-2.5 text-sm font-medium disabled:opacity-60", t.button)}>
-            Kirim konfirmasi
-          </button>
-          {disabled && <p className={cn("text-center text-xs", t.muted)}>Pratinjau: form RSVP aktif setelah undangan diterbitkan.</p>}
-        </form>
-      )}
-    </section>
   );
 }

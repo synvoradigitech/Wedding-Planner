@@ -124,7 +124,7 @@ export default function TamuPage() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Cari nama tamu"
-            className="w-full rounded-full bg-paper py-3 pr-4 pl-11 text-sm shadow-soft placeholder:text-muted/70 focus:ring-4 focus:ring-primary/10 focus:outline-none"
+            className="w-full rounded-full bg-paper py-3 pr-4 pl-11 text-sm sticker-sm placeholder:text-muted/70 focus:ring-4 focus:ring-primary/10 focus:outline-none"
           />
         </div>
         <Segmented
@@ -144,7 +144,7 @@ export default function TamuPage() {
               onClick={() => setGroup(g.name)}
               className={cn(
                 "flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition",
-                group === g.name ? "bg-ink text-white" : "bg-paper text-muted shadow-soft",
+                group === g.name ? "bg-ink text-white" : "bg-paper text-muted sticker-sm",
               )}
             >
               {g.name === "semua" ? "Semua grup" : g.name}

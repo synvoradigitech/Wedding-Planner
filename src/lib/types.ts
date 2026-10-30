@@ -92,7 +92,7 @@ export interface WeddingEvent {
   rundown: RundownItem[];
 }
 
-export type InvitationTemplate = "melati" | "sage" | "malam";
+export type InvitationTemplate = "melati" | "sage" | "malam" | "minang";
 
 export interface Invitation {
   template: InvitationTemplate;
@@ -102,6 +102,32 @@ export interface Invitation {
   closing: string;
   music: boolean;
   published: boolean;
+  /** Bagian di bawah ini dipakai tema Minang; opsional karena data lama belum punya. */
+  brideParents?: string;
+  groomParents?: string;
+  photos?: InvitationPhotos;
+  story?: StoryItem[];
+  gift?: GiftAccount;
+}
+
+export interface InvitationPhotos {
+  cover?: string;
+  bride?: string;
+  groom?: string;
+  gallery?: string[];
+}
+
+export interface StoryItem {
+  id: string;
+  title: string;
+  date: string;
+  text: string;
+}
+
+export interface GiftAccount {
+  bank: string;
+  number: string;
+  holder: string;
 }
 
 export interface Wish {

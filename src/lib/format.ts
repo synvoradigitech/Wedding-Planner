@@ -80,3 +80,8 @@ export function initials(name: string) {
     .map((w) => w[0]?.toUpperCase())
     .join("");
 }
+
+/** "teddy" menjadi "Teddy", untuk nama yang diketik huruf kecil semua. */
+export function titleCase(text: string) {
+  return text.replace(/(^|\s)\p{L}/gu, (c) => c.toUpperCase());
+}
