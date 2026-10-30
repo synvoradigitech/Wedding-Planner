@@ -298,6 +298,17 @@ function MinangDetails({ invitation, patch }: { invitation: Invitation; patch: (
         <Field label="Keterangan mempelai pria">
           <input value={invitation.groomParents ?? ""} onChange={(e) => patch({ groomParents: e.target.value })} placeholder="Putra dari Bapak ... & Ibu ..." className={inputClass} />
         </Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Instagram wanita">
+            <input value={invitation.brideInstagram ?? ""} onChange={(e) => patch({ brideInstagram: e.target.value })} placeholder="@nama" className={inputClass} />
+          </Field>
+          <Field label="Instagram pria">
+            <input value={invitation.groomInstagram ?? ""} onChange={(e) => patch({ groomInstagram: e.target.value })} placeholder="@nama" className={inputClass} />
+          </Field>
+        </div>
+        <Field label="Tautan siaran langsung" hint="Opsional. Kosongkan kalau tidak ada siaran.">
+          <input value={invitation.streamUrl ?? ""} onChange={(e) => patch({ streamUrl: e.target.value })} placeholder="https://" className={inputClass} />
+        </Field>
         <div className="grid grid-cols-3 gap-3">
           <PhotoField label="Sampul" value={photos.cover} onChange={(cover) => setPhotos({ cover })} />
           <PhotoField label="Wanita" value={photos.bride} onChange={(bride) => setPhotos({ bride })} />

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Fredoka, Marcellus, Parisienne, Plus_Jakarta_Sans } from "next/font/google";
+import { Fraunces, Fredoka, Marcellus, Plus_Jakarta_Sans, Yellowtail } from "next/font/google";
 import { APP_NAME, APP_TAGLINE } from "@/lib/brand";
 import "./globals.css";
 
@@ -25,8 +25,8 @@ const marcellus = Marcellus({
   weight: "400",
 });
 
-const parisienne = Parisienne({
-  variable: "--font-parisienne-face",
+const yellowtail = Yellowtail({
+  variable: "--font-script-face",
   subsets: ["latin"],
   weight: "400",
 });
@@ -42,7 +42,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="id" suppressHydrationWarning className={`${jakarta.variable} ${fraunces.variable} ${fredoka.variable} ${marcellus.variable} ${parisienne.variable} h-full antialiased`}>
+    <html lang="id" suppressHydrationWarning className={`${jakarta.variable} ${fraunces.variable} ${fredoka.variable} ${marcellus.variable} ${yellowtail.variable} h-full antialiased`}>
       <body suppressHydrationWarning className="min-h-full font-sans">{children}</body>
     </html>
   );

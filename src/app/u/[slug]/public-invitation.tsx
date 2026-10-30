@@ -57,7 +57,7 @@ export function PublicInvitation({ slug, guestSlug }: { slug: string; guestSlug:
   }
 
   return (
-    <div className="mx-auto min-h-screen max-w-xl shadow-sm">
+    <div className={state.invitation.template === "minang" ? "min-h-screen" : "mx-auto min-h-screen max-w-xl shadow-sm"}>
       <InvitationView state={state} guest={guest} mode="live" onRsvp={handleRsvp} />
     </div>
   );

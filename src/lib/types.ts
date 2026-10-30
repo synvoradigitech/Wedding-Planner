@@ -105,6 +105,9 @@ export interface Invitation {
   /** Bagian di bawah ini dipakai tema Minang; opsional karena data lama belum punya. */
   brideParents?: string;
   groomParents?: string;
+  brideInstagram?: string;
+  groomInstagram?: string;
+  streamUrl?: string;
   photos?: InvitationPhotos;
   story?: StoryItem[];
   gift?: GiftAccount;

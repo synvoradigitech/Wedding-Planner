@@ -1,94 +1,84 @@
 "use client";
 
-import { CalendarDays, Check, Clock, Copy, Gift, Heart, Home, Images, MailOpen, MapPin, MessageCircleHeart, Users, Volume2, VolumeX } from "lucide-react";
-import { AnimatePresence, motion, type Variants } from "motion/react";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { CalendarDays, Check, Copy, Gift, Heart, Images, MailOpen, MapPin, MessageCircleHeart, Radio, Users, Volume2, VolumeX } from "lucide-react";
+import { AnimatePresence, motion, useInView, type Variants } from "motion/react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
 import { formatDate, titleCase } from "@/lib/format";
 import type { AppState, Guest } from "@/lib/types";
 import { RsvpForm, type RsvpInput, type RsvpTheme } from "../invitation-rsvp";
-import { GoldDivider, GoldFrame, Hibiscus, Leaf, Petal, RumahGadang } from "./minang-art";
+import { EngravedScene, GoldFrame, LandscapeScene, Leaf, Lily, MountainScene, RumahGadang, ScrollMouse, StoneArch, Wash } from "./minang-art";
 import { Talempong } from "./talempong";
 
 const RSVP_THEME: RsvpTheme = {
-  panel: "bg-minang-maroon/90 border-minang-gold/60 text-white",
-  accent: "text-minang-glow font-script",
+  panel: "bg-minang-maroon border-minang-gold/60 text-white",
+  accent: "text-minang-gold font-script",
   muted: "text-white/70",
   button: "bg-minang-gold text-minang-night",
   field: "border-minang-gold/50 bg-white/95 text-minang-night",
 };
 
-const ENTER: Record<"zoom" | "left" | "right" | "up", Variants> = {
-  zoom: { hidden: { opacity: 0, scale: 0.55 }, show: { opacity: 1, scale: 1 } },
-  left: { hidden: { opacity: 0, x: -70 }, show: { opacity: 1, x: 0 } },
-  right: { hidden: { opacity: 0, x: 70 }, show: { opacity: 1, x: 0 } },
-  up: { hidden: { opacity: 0, y: 44 }, show: { opacity: 1, y: 0 } },
+/* Efek muncul mengikuti scroll: masuk saat terlihat, keluar lagi saat kembali ke atas. */
+const ENTER: Record<"up" | "left" | "right", Variants> = {
+  up: { hidden: { opacity: 0, y: 96, scale: 0.93 }, show: { opacity: 1, y: 0, scale: 1 } },
+  left: { hidden: { opacity: 0, x: "-100%", scale: 0.93 }, show: { opacity: 1, x: 0, scale: 1 } },
+  right: { hidden: { opacity: 0, x: "100%", scale: 0.93 }, show: { opacity: 1, x: 0, scale: 1 } },
 };
 
-function Enter({ from = "up", delay = 0, className, children }: { from?: keyof typeof ENTER; delay?: number; className?: string; children: ReactNode }) {
+function Enter({ from = "up", className, children }: { from?: keyof typeof ENTER; className?: string; children: ReactNode }) {
+  // Posisi dibaca dari pembungkus yang diam; elemen yang digeser ke luar area potong tidak akan pernah terdeteksi terlihat.
+  const anchor = useRef<HTMLDivElement>(null);
+  const inView = useInView(anchor, { once: false, margin: "0px 0px -120px 0px" });
   return (
-    <motion.div
-      className={className}
-      variants={ENTER[from]}
-      initial="hidden"
-      whileInView="show"
-      viewport={{ once: true, amount: 0.2 }}
-      transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay }}
-    >
+    <div ref={anchor}>
+      <motion.div className={className} variants={ENTER[from]} initial="hidden" animate={inView ? "show" : "hidden"} transition={{ duration: 1, ease: "easeOut", opacity: { duration: 0.5 } }}>
+        {children}
+      </motion.div>
+    </div>
+  );
+}
+
+/** Denyut pelan pada bunga dan foto. */
+function Pulse({ className, style, children }: { className?: string; style?: CSSProperties; children: ReactNode }) {
+  return (
+    <motion.div className={className} style={style} animate={{ scale: [0.95, 1, 0.95] }} transition={{ duration: 3, repeat: Infinity, ease: "easeOut", times: [0, 0.6, 1] }}>
       {children}
     </motion.div>
   );
 }
 
-/** Bunga di sudut: membesar-mengecil pelan, daunnya bergoyang. */
-function FloralCorner({ side, className }: { side: "left" | "right"; className?: string }) {
-  const flip = side === "right";
+function Sway({ className, children, delay = 0, angle = 8 }: { className?: string; children: ReactNode; delay?: number; angle?: number }) {
   return (
-    <div className={cn("pointer-events-none absolute z-10 w-32", className)} style={flip ? { transform: "scaleX(-1)" } : undefined} aria-hidden>
-      <motion.div className="absolute top-2 left-14 w-9 origin-bottom" animate={{ rotate: [-8, 10, -8] }} transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}>
-        <Leaf />
-      </motion.div>
-      <motion.div className="absolute top-8 left-0 w-9 origin-bottom -rotate-45" animate={{ rotate: [-55, -35, -55] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}>
-        <Leaf tone="#2f6650" />
-      </motion.div>
-      <motion.div className="relative mt-12 w-24" animate={{ scale: [0.95, 1, 0.95] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}>
-        <Hibiscus />
-      </motion.div>
+    <motion.div className={className} style={{ originY: 1 }} animate={{ rotate: [0, angle, 0] }} transition={{ duration: 2.5, repeat: Infinity, ease: "linear", delay, times: [0, 0.65, 1] }}>
+      {children}
+    </motion.div>
+  );
+}
+
+/** Daun yang berpangkal di satu titik, lalu bergoyang pelan. */
+function BranchLeaf({ x, y, rotate, width = 46, delay = 0, tone, vein }: { x: number; y: number; rotate: number; width?: number; delay?: number; tone?: string; vein?: string }) {
+  const height = width * (130 / 60);
+  return (
+    <div className="absolute" style={{ left: x - width / 2, top: y - height, width, transform: `rotate(${rotate}deg)`, transformOrigin: "50% 100%" }}>
+      <Sway delay={delay} angle={6}>
+        <Leaf tone={tone} vein={vein} />
+      </Sway>
     </div>
   );
 }
 
-function FallingPetals() {
-  const petals = [
-    { left: "8%", delay: 0, duration: 11 },
-    { left: "26%", delay: 3.5, duration: 13 },
-    { left: "48%", delay: 7, duration: 10 },
-    { left: "68%", delay: 1.5, duration: 14 },
-    { left: "88%", delay: 5, duration: 12 },
-  ];
+/** Rangkaian bunga dan daun di sisi gerbang. */
+function Bouquet({ size = 150 }: { size?: number }) {
+  const c = size * 0.34;
   return (
-    <div className="pointer-events-none absolute inset-0 z-20 overflow-hidden" aria-hidden>
-      {petals.map((p) => (
-        <motion.div
-          key={p.left}
-          className="absolute -top-8 w-3.5"
-          style={{ left: p.left }}
-          animate={{ y: [0, 900], x: [0, 30, -20, 25], rotate: [0, 200, 420], opacity: [0, 0.9, 0.9, 0] }}
-          transition={{ duration: p.duration, delay: p.delay, repeat: Infinity, ease: "linear" }}
-        >
-          <Petal />
-        </motion.div>
-      ))}
+    <div className="pointer-events-none relative" style={{ width: size, height: size * 1.25 }} aria-hidden>
+      <BranchLeaf x={c} y={size * 0.72} rotate={22} width={size * 0.33} />
+      <BranchLeaf x={c} y={size * 0.72} rotate={58} width={size * 0.36} delay={0.5} />
+      <BranchLeaf x={c} y={size * 0.72} rotate={92} width={size * 0.28} delay={1} tone="#7fae8d" vein="#234a38" />
+      <Pulse className="absolute" style={{ left: -size * 0.32, top: size * 0.38, width: size * 0.92 }}>
+        <Lily />
+      </Pulse>
     </div>
-  );
-}
-
-function SectionTitle({ children }: { children: ReactNode }) {
-  return (
-    <Enter from="zoom" className="text-center">
-      <h2 className="font-script text-[2.6rem] leading-tight text-minang-glow">{children}</h2>
-      <GoldDivider className="mx-auto mt-1 w-36" />
-    </Enter>
   );
 }
 
@@ -97,23 +87,121 @@ function Photo({ src, alt, fallback, className }: { src?: string; alt: string; f
     // eslint-disable-next-line @next/next/no-img-element -- foto berupa data URL dari unggahan pengguna
     return <img src={src} alt={alt} className={cn("h-full w-full object-cover", className)} />;
   }
-  return <div className={cn("flex h-full w-full items-center justify-center bg-gradient-to-br from-minang-wine to-minang-night font-script text-7xl text-minang-glow", className)}>{fallback}</div>;
+  return <div className={cn("flex h-full w-full items-center justify-center bg-gradient-to-br from-minang-wine to-minang-night font-script text-7xl text-minang-gold", className)}>{fallback}</div>;
 }
 
-function Couple({ title, name, parents, photo, side }: { title: string; name: string; parents?: string; photo?: string; side: "left" | "right" }) {
+/** Panel kiri di desktop: tetap diam saat kolom kanan di-scroll. */
+function SidePanel({ guest }: { guest?: Guest | null }) {
   return (
-    <section className={cn("relative overflow-hidden px-6 py-14", side === "left" ? "bg-minang-rose/90" : "bg-minang-wine")}>
-      <div className="bg-songket absolute inset-0" />
-      <Enter from={side} className="relative mx-auto max-w-sm rounded-t-full border-2 border-minang-gold/50 bg-minang-maroon px-6 pt-14 pb-10 text-center">
-        <p className="font-script text-4xl text-white">{title}</p>
-        <motion.div className="relative mx-auto mt-6 w-48" animate={{ scale: [0.97, 1, 0.97] }} transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}>
+    <aside className="fixed inset-y-0 right-[432px] left-0 hidden overflow-hidden bg-[#8a3249] lg:block">
+      <EngravedScene className="absolute inset-0 h-full w-full text-[#6d1830] opacity-80" />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 2 }}
+        className="relative z-10 flex h-full flex-col items-center justify-center px-8 text-center"
+      >
+        <p className="text-xl tracking-[0.12em] text-white uppercase">Undangan Pernikahan</p>
+        <div className="my-6 h-px w-96 max-w-full bg-white/70" />
+        <p className="font-script text-7xl leading-tight text-minang-gold xl:text-8xl">Anda Diundang!</p>
+        <p className="mt-2 text-xl tracking-wide text-white">kepada :</p>
+        <p className="mt-2 font-script text-6xl leading-tight text-minang-gold xl:text-7xl">{guest?.name ?? "Tamu Undangan"}</p>
+        <p className="mt-4 text-xl tracking-wide text-white">mohon hadir di hari bahagia kami</p>
+      </motion.div>
+    </aside>
+  );
+}
+
+function Birds() {
+  const flock = [
+    { x: 0, y: 0, d: 0 },
+    { x: 34, y: -18, d: 0.1 },
+    { x: 66, y: 10, d: 0.05 },
+    { x: 96, y: -12, d: 0.2 },
+    { x: -30, y: 22, d: 0.15 },
+    { x: 18, y: 34, d: 0.25 },
+  ];
+  return (
+    <motion.div className="absolute top-[10%] left-0 z-10 w-full" initial={{ x: "105%", y: 40 }} animate={{ x: "-40%", y: -10 }} transition={{ duration: 4, ease: "linear" }} aria-hidden>
+      {flock.map((b, i) => (
+        <motion.svg key={i} viewBox="0 0 30 16" className="absolute w-6" style={{ left: b.x, top: b.y }} animate={{ scaleY: [1, 0.3, 1] }} transition={{ duration: 0.45, repeat: Infinity, delay: b.d }}>
+          <path d="M1 12 Q8 1 15 9 Q22 1 29 12 Q22 7 15 13 Q8 7 1 12 Z" fill="#23303f" />
+        </motion.svg>
+      ))}
+    </motion.div>
+  );
+}
+
+/** Pembuka sinematis: gunung, lukisan Rumah Gadang, lalu gerbang marun dan nama mempelai. */
+function CinematicHero({ bride, groom, date, heightClass }: { bride: string; groom: string; date: string | null; heightClass: string }) {
+  const scene = (delay: number) => ({ duration: 1.4, delay, ease: "easeInOut" as const });
+  return (
+    <section id="m-beranda" className={cn("relative overflow-hidden bg-minang-night", heightClass)}>
+      <motion.div className="absolute inset-0 will-change-transform" animate={{ opacity: 0, scale: 1.12 }} transition={{ opacity: scene(2.6), scale: { duration: 4, ease: "linear" } }}>
+        <MountainScene className="h-full w-full" />
+      </motion.div>
+      <Birds />
+      <motion.div className="absolute inset-0 will-change-transform" initial={{ opacity: 0, scale: 1.18 }} animate={{ opacity: 1, scale: 1 }} transition={{ opacity: scene(2.6), scale: { duration: 8, delay: 2.6, ease: "easeOut" } }}>
+        <LandscapeScene className="h-full w-full" />
+      </motion.div>
+      <motion.div className="absolute inset-0 bg-[#4f0a22]" initial={{ opacity: 0 }} animate={{ opacity: 0.87 }} transition={scene(5.2)} />
+
+      <motion.div className="absolute inset-0 z-[5]" initial={{ opacity: 0, scale: 1.3 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 1.6, delay: 5.6, ease: "easeOut" }}>
+        <StoneArch className="h-auto w-full" />
+      </motion.div>
+
+      <motion.div className="absolute top-[34%] left-0 z-10" initial={{ opacity: 0, x: -120, scale: 0.6 }} animate={{ opacity: 1, x: 0, scale: 1 }} transition={{ duration: 1.3, delay: 6.3, ease: "easeOut" }}>
+        <Bouquet />
+      </motion.div>
+      <motion.div className="absolute -right-8 -bottom-8 z-10 w-48" initial={{ opacity: 0, x: 120, y: 80, scale: 0.6 }} animate={{ opacity: 1, x: 0, y: 0, scale: 1 }} transition={{ duration: 1.3, delay: 6.5, ease: "easeOut" }}>
+        <BranchLeaf x={70} y={120} rotate={-98} width={52} tone="#7fae8d" vein="#234a38" />
+        <Pulse className="relative w-48">
+          <Lily />
+        </Pulse>
+      </motion.div>
+
+      <div className="relative z-20 flex h-full flex-col items-center px-12 pt-[17vh] text-center">
+        <motion.div className="w-[46%] min-w-32" initial={{ opacity: 0, scale: 0.3 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 1.2, delay: 6.8, ease: "backOut" }}>
+          <RumahGadang />
+        </motion.div>
+        <motion.div className="flex flex-1 flex-col items-center justify-center pb-20" initial={{ opacity: 0, scale: 0.3 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 2, delay: 7.6 }}>
+          <p className="text-lg tracking-[0.08em] uppercase">The Wedding Of</p>
+          <p className="mt-5 font-script text-6xl leading-tight break-words text-minang-gold">{bride}</p>
+          <p className="my-1 text-lg">dan</p>
+          <p className="font-script text-6xl leading-tight break-words text-minang-gold">{groom}</p>
+          <p className="mt-6 text-lg tracking-[0.04em] uppercase">{formatDate(date, "weekday")}</p>
+          <motion.div className="mt-8" animate={{ y: [0, 22, 0] }} transition={{ duration: 1.75, repeat: Infinity, ease: "linear" }}>
+            <ScrollMouse />
+          </motion.div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+function CoupleCard({ title, name, parents, photo, instagram, side, tone }: { title: string; name: string; parents?: string; photo?: string; instagram?: string; side: "left" | "right"; tone: "rose" | "wine" }) {
+  return (
+    <section className={cn("relative overflow-hidden px-7 py-16", tone === "rose" ? "bg-[#c08093]" : "bg-minang-maroon")}>
+      <EngravedScene className={cn("absolute inset-0 h-full w-full opacity-30", tone === "rose" ? "text-[#7a1a3a]" : "text-[#a95c76]")} />
+      <Enter from={side} className="relative rounded-t-full bg-[#7a1a3a]/95 px-6 pt-16 pb-12 text-center">
+        <p className="font-script text-5xl text-white">{title}</p>
+        <Pulse className="relative mx-auto mt-7 w-52">
           <div className="absolute inset-[9%] overflow-hidden rounded-[50%]">
             <Photo src={photo} alt={`Foto ${name}`} fallback={name.charAt(0)} />
           </div>
           <GoldFrame className="relative" />
-        </motion.div>
-        <p className="mt-5 font-script text-[2.5rem] leading-tight text-minang-glow">{name}</p>
-        {parents && <p className="mt-2 font-marcellus text-sm leading-relaxed text-white/85">{parents}</p>}
+        </Pulse>
+        <p className="mt-6 font-script text-5xl leading-tight break-words text-minang-gold">{name}</p>
+        {parents && <p className="mt-3 text-base leading-relaxed text-white/95">{parents}</p>}
+        {instagram && (
+          <motion.a whileHover={{ scale: 1.15 }} href={`https://instagram.com/${instagram.replace(/^@/, "")}`} target="_blank" rel="noreferrer" aria-label={`Instagram ${name}`} className="mx-auto mt-5 flex h-12 w-12 items-center justify-center rounded-full bg-minang-gold text-minang-night">
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+              <rect x="3" y="3" width="18" height="18" rx="5" />
+              <circle cx="12" cy="12" r="4" />
+              <circle cx="17.5" cy="6.5" r="0.6" fill="currentColor" />
+            </svg>
+          </motion.a>
+        )}
       </Enter>
     </section>
   );
@@ -134,32 +222,39 @@ function Countdown({ date }: { date: string }) {
     { label: "Detik", value: Math.floor(left / 1000) % 60 },
   ];
   return (
-    <div className="mt-6 grid grid-cols-4 gap-2">
+    <div className="mt-7 grid grid-cols-4 gap-2">
       {units.map((u) => (
-        <div key={u.label} className="rounded-xl border border-minang-gold/70 bg-minang-night/50 py-3 text-center">
-          <div className="h-9 overflow-hidden">
-            <AnimatePresence mode="popLayout" initial={false}>
-              <motion.p
-                key={u.value}
-                initial={{ y: -28, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: 28, opacity: 0 }}
-                transition={{ duration: 0.35 }}
-                className="font-marcellus text-3xl leading-9 text-minang-glow tabular-nums"
-              >
-                {String(u.value).padStart(2, "0")}
-              </motion.p>
-            </AnimatePresence>
-          </div>
-          <p className="mt-1 font-marcellus text-[11px] text-white/80">{u.label}</p>
+        <div key={u.label} className="rounded-lg border border-minang-gold/80 py-3 text-center">
+          <p className="text-3xl text-minang-gold tabular-nums">{String(u.value).padStart(2, "0")}</p>
+          <p className="mt-1 text-xs text-white/85">{u.label}</p>
         </div>
       ))}
     </div>
   );
 }
 
+function EventBlock({ title, date, time, venue, address, mapsUrl }: { title: string; date: string | null; time: string; venue: string; address: string; mapsUrl: string }) {
+  return (
+    <Enter className="text-center">
+      <p className="font-script text-5xl leading-tight text-minang-gold">{title}</p>
+      <p className="mt-5 font-semibold text-white">Hari dan Tanggal</p>
+      <p className="mt-1 text-minang-gold">{formatDate(date, "weekday")}</p>
+      <p className="mt-4 font-semibold text-white">Waktu</p>
+      <p className="mt-1 text-minang-gold">{time}</p>
+      <p className="mt-4 font-semibold text-white">Lokasi</p>
+      <p className="mt-1 text-minang-gold">{venue || "Lokasi menyusul"}</p>
+      <p className="mt-1 text-sm text-white/90">{address}</p>
+      {mapsUrl && (
+        <motion.a whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} href={mapsUrl} target="_blank" rel="noreferrer" className="mt-5 inline-flex items-center gap-2 rounded-lg bg-minang-gold px-6 py-2.5 text-minang-night">
+          <MapPin size={16} /> Lihat Lokasi
+        </motion.a>
+      )}
+    </Enter>
+  );
+}
+
 const NAV = [
-  { id: "m-beranda", label: "Beranda", icon: Home },
+  { id: "m-beranda", label: "Beranda", icon: MailOpen },
   { id: "m-mempelai", label: "Mempelai", icon: Users },
   { id: "m-acara", label: "Acara", icon: CalendarDays },
   { id: "m-kisah", label: "Kisah", icon: Images },
@@ -184,10 +279,11 @@ export function MinangInvitation({
   const story = invitation.story ?? [];
   const gallery = photos.gallery ?? [];
   const visibleEvents = guest ? events.filter((e) => guest.eventIds.includes(e.id)) : events;
+  const live = mode === "live";
+  const screen = live ? "h-svh" : "h-[640px]";
 
   const [opened, setOpened] = useState(false);
   const [playing, setPlaying] = useState(false);
-  const [active, setActive] = useState(NAV[0].id);
   const [copied, setCopied] = useState(false);
   const [giftOpen, setGiftOpen] = useState(false);
   const musicRef = useRef<Talempong | null>(null);
@@ -210,10 +306,6 @@ export function MinangInvitation({
     setPlaying(!playing);
   }
 
-  function goTo(id: string) {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-
   async function copyAccount() {
     if (!invitation.gift) return;
     await navigator.clipboard?.writeText(invitation.gift.number);
@@ -221,264 +313,235 @@ export function MinangInvitation({
     setTimeout(() => setCopied(false), 1500);
   }
 
-  const track = (id: string) => ({ id, onViewportEnter: () => setActive(id), viewport: { amount: 0.3 } });
-  const coverHeight = mode === "live" ? "min-h-svh" : "min-h-[640px]";
-
   return (
-    <div className={cn("relative overflow-x-clip bg-minang-night font-marcellus text-white", coverHeight)}>
-      <AnimatePresence>
-        {!opened && (
-          <motion.section
-            key="sampul"
-            exit={{ y: "-105%", opacity: 0.6 }}
-            transition={{ duration: 1.1, ease: [0.7, 0, 0.2, 1] }}
-            className={cn("absolute inset-x-0 top-0 z-40 flex flex-col items-center justify-center overflow-hidden px-6 py-10 text-center", mode === "live" ? "h-svh" : "h-[640px]")}
-          >
-            <div className="absolute inset-0 bg-gradient-to-b from-minang-wine via-minang-rose to-minang-night">
+    <div className={cn("relative overflow-x-clip bg-minang-night font-marcellus text-white", live ? "min-h-svh" : "min-h-[640px]")}>
+      {live && <SidePanel guest={guest} />}
+
+      <div className={cn("relative", live && "lg:ml-auto lg:w-[432px]")}>
+        <AnimatePresence>
+          {!opened && (
+            <motion.section key="sampul" exit={{ opacity: 0 }} transition={{ duration: 0.5 }} className={cn("absolute inset-x-0 top-0 z-40 overflow-hidden bg-[#c9a4ae]", screen)}>
               {photos.cover && (
                 // eslint-disable-next-line @next/next/no-img-element -- foto berupa data URL dari unggahan pengguna
-                <img src={photos.cover} alt={`${bride} dan ${groom}`} className="h-full w-full object-cover opacity-75" />
+                <img src={photos.cover} alt={`${bride} dan ${groom}`} className="absolute inset-0 h-full w-full object-cover" />
               )}
-            </div>
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgb(236_208_214/0.55),transparent_55%),radial-gradient(ellipse_at_bottom_right,rgb(63_10_29/0.85),transparent_60%)]" />
-            <div className="bg-songket absolute inset-0" />
-            <FloralCorner side="left" className="top-2 -left-3" />
-            <FloralCorner side="right" className="-right-3 bottom-4" />
+              <Wash className="absolute inset-0 h-full w-full" color="#7a3b4f" />
+              <div className="absolute inset-0 bg-[#4f1830]/35" />
 
-            <motion.div initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 1.1, ease: "backOut" }} className="relative z-10 w-52">
-              <motion.div animate={{ y: [0, 10, 0] }} transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}>
-                <RumahGadang />
+              {/* Pemandangan ukiran naik dari bawah */}
+              <motion.div className="absolute inset-x-0 bottom-0 h-[34%]" initial={{ y: "100%" }} animate={{ y: 0 }} transition={{ duration: 2, ease: "easeOut" }}>
+                <div className="absolute inset-0 bg-gradient-to-t from-white via-white/90 to-transparent" />
+                <EngravedScene className="relative h-full w-full text-[#a64f6b]" />
               </motion.div>
-            </motion.div>
-            <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.4 }} className="relative z-10 mt-4">
-              <p className="font-script text-3xl text-minang-glow">Undangan Pernikahan</p>
-              <p className="mt-1 font-script text-[3.2rem] leading-tight text-white drop-shadow">
-                {bride} &amp; {groom}
-              </p>
-              <p className="mt-2 text-sm tracking-wide text-white/90">{formatDate(wedding.date, "weekday")}</p>
-            </motion.div>
-            <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.7 }} className="relative z-10 mt-8">
-              <p className="text-sm text-white/90">Kepada Yth,</p>
-              <p className="mt-1 text-2xl text-minang-glow">{guest?.name ?? "Tamu Undangan"}</p>
-              <motion.button
-                onClick={open}
-                animate={{ scale: [1, 1.05, 1] }}
-                whileTap={{ scale: 0.94 }}
-                transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-                className="mt-5 inline-flex items-center gap-2 rounded-lg bg-minang-gold px-6 py-2.5 text-minang-night shadow-lg"
-              >
-                <MailOpen size={18} /> Buka Undangan
-              </motion.button>
-            </motion.div>
-          </motion.section>
-        )}
-      </AnimatePresence>
 
-      {opened && (
-        <>
-          {/* Gerbang pembuka */}
-          <motion.section {...track("m-beranda")} className="relative overflow-hidden">
-            <FallingPetals />
-            <div className="relative flex min-h-[620px] flex-col items-center bg-minang-maroon px-5 pt-5 pb-10">
-              <div className="bg-songket absolute inset-0" />
-              <FloralCorner side="left" className="top-44 -left-4" />
-              <FloralCorner side="right" className="-right-4 bottom-2" />
-              <div className="relative w-full max-w-sm rounded-t-full border-[10px] border-minang-blush/90 p-1.5 shadow-[0_0_0_2px_rgb(233_181_42/0.7)]">
-                <div className="flex min-h-[530px] flex-col items-center rounded-t-full bg-gradient-to-b from-minang-night to-minang-wine px-6 pt-16 pb-8 text-center">
-                  <motion.div className="w-40" initial={{ opacity: 0, scale: 0.3 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 1.2, delay: 0.5, ease: "backOut" }}>
-                    <motion.div animate={{ y: [0, 12, 0] }} transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}>
-                      <RumahGadang />
-                    </motion.div>
-                  </motion.div>
-                  <Enter from="zoom" delay={0.7}>
-                    <p className="mt-6 font-script text-5xl leading-tight text-minang-glow">
-                      {bride} <span className="text-3xl text-white">&amp;</span> {groom}
-                    </p>
-                  </Enter>
-                  <Enter delay={0.9}>
-                    <p className="mt-5 text-[15px] leading-relaxed text-white/90">{invitation.opening}</p>
-                  </Enter>
-                </div>
-              </div>
-            </div>
-          </motion.section>
-
-          {invitation.quote && (
-            <section className="relative overflow-hidden bg-minang-blush px-6 py-12 text-center text-minang-night">
-              <Enter from="zoom" className="mx-auto max-w-sm">
-                <p className="text-base leading-relaxed italic">“{invitation.quote}”</p>
-                <p className="mt-3 text-sm font-semibold text-minang-wine">{invitation.quoteSource}</p>
-              </Enter>
-            </section>
-          )}
-
-          <motion.div {...track("m-mempelai")}>
-            <Couple side="left" title="Mempelai Wanita" name={bride} parents={invitation.brideParents} photo={photos.bride} />
-            <Couple side="right" title="Mempelai Pria" name={groom} parents={invitation.groomParents} photo={photos.groom} />
-          </motion.div>
-
-          {/* Hitung mundur dan acara */}
-          <motion.section {...track("m-acara")} className="relative overflow-hidden bg-minang-maroon px-6 py-14">
-            <div className="bg-songket absolute inset-0" />
-            <div className="relative mx-auto max-w-sm">
-              {wedding.date && (
-                <>
-                  <SectionTitle>Menuju Hari Bahagia</SectionTitle>
-                  <Enter>
-                    <Countdown date={wedding.date} />
-                  </Enter>
-                </>
-              )}
-              <div className="mt-12 space-y-6">
-                {visibleEvents.map((e, i) => (
-                  <Enter key={e.id} from={i % 2 ? "right" : "left"}>
-                    <div className="rounded-t-[7rem] rounded-b-3xl border-2 border-minang-gold/60 bg-minang-night/60 px-6 pt-12 pb-7 text-center">
-                      <p className="font-script text-[2.6rem] leading-tight text-minang-glow">{e.name}</p>
-                      <p className="mt-4 flex items-center justify-center gap-2 text-sm text-white/95">
-                        <CalendarDays size={15} className="text-minang-gold" /> {formatDate(e.date, "weekday")}
-                      </p>
-                      <p className="mt-1.5 flex items-center justify-center gap-2 text-sm text-white/95">
-                        <Clock size={15} className="text-minang-gold" /> {e.start} – {e.end} WIB
-                      </p>
-                      <p className="mt-4 text-lg text-minang-glow">{e.venue || "Lokasi menyusul"}</p>
-                      <p className="mt-1 text-sm text-white/80">{e.address}</p>
-                      {e.mapsUrl && (
-                        <motion.a whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.95 }} href={e.mapsUrl} target="_blank" rel="noreferrer" className="mt-5 inline-flex items-center gap-2 rounded-lg bg-minang-gold px-5 py-2 text-sm text-minang-night">
-                          <MapPin size={15} /> Lihat Lokasi
-                        </motion.a>
-                      )}
-                    </div>
-                  </Enter>
-                ))}
-              </div>
-            </div>
-          </motion.section>
-
-          {/* Galeri dan kisah */}
-          {(gallery.length > 0 || story.length > 0) && (
-            <motion.section {...track("m-kisah")} className="relative overflow-hidden bg-minang-wine px-6 py-14">
-              <div className="bg-songket absolute inset-0" />
-              <div className="relative mx-auto max-w-sm">
-                {gallery.length > 0 && (
-                  <>
-                    <SectionTitle>Momen Kami</SectionTitle>
-                    <div className="mt-7 grid grid-cols-2 gap-3">
-                      {gallery.map((src, i) => (
-                        <Enter key={i} from={i % 2 ? "right" : "left"} className={cn("overflow-hidden rounded-2xl border border-minang-gold/60", i % 3 === 0 ? "aspect-[3/4]" : "aspect-square")}>
-                          <Photo src={src} alt={`Momen ${i + 1}`} fallback="" />
-                        </Enter>
-                      ))}
-                    </div>
-                  </>
-                )}
-                {story.length > 0 && (
-                  <div className={gallery.length ? "mt-14" : ""}>
-                    <SectionTitle>Kisah Kami</SectionTitle>
-                    <ol className="relative mt-8 space-y-7 border-l-2 border-minang-gold/60 pl-6">
-                      {story.map((s, i) => (
-                        <Enter key={s.id} from={i % 2 ? "right" : "left"} className="relative">
-                          <li>
-                            <span className="absolute top-1 -left-[33px] flex h-4 w-4 items-center justify-center rounded-full border-2 border-minang-gold bg-minang-night" />
-                            <p className="font-script text-3xl leading-tight text-minang-glow">{s.title}</p>
-                            <p className="text-xs tracking-wide text-minang-gold">{s.date}</p>
-                            <p className="mt-2 text-sm leading-relaxed text-white/90">{s.text}</p>
-                          </li>
-                        </Enter>
-                      ))}
-                    </ol>
-                  </div>
-                )}
+              <div className="relative z-10 flex h-full flex-col items-center justify-center px-6 pb-[14%] text-center">
+                <motion.div className="w-40" initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 1.2 }}>
+                  <RumahGadang />
+                </motion.div>
+                <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.3 }} className="mt-5 font-script text-4xl text-minang-gold drop-shadow">
+                  Undangan Pernikahan
+                </motion.p>
+                <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.5 }} className="mt-1 font-script text-6xl leading-tight break-words text-white drop-shadow-lg">
+                  {bride} &amp; {groom}
+                </motion.p>
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.8 }} className="mt-12">
+                  <p className="text-lg tracking-wide text-white">Kepada Yth,</p>
+                  <p className="mt-1 text-3xl text-minang-gold">{guest?.name ?? "Tamu Undangan"}</p>
+                  <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={open} className="mt-4 inline-flex items-center gap-2.5 rounded-md bg-minang-gold px-6 py-2.5 text-lg text-minang-night">
+                    Buka Undangan <MailOpen size={19} />
+                  </motion.button>
+                </motion.div>
               </div>
             </motion.section>
           )}
+        </AnimatePresence>
 
-          {/* Ucapan, RSVP, dan hadiah */}
-          <motion.section {...track("m-ucapan")} className="relative overflow-hidden bg-minang-blush px-6 py-14">
-            <FloralCorner side="right" className="-top-6 -right-6" />
-            <Enter>
-              <RsvpForm guest={guest} mode={mode} theme={RSVP_THEME} onRsvp={onRsvp} />
-            </Enter>
-            {state.wishes.length > 0 && (
-              <div className="mx-auto mt-8 max-w-md">
-                <h3 className="text-center font-script text-4xl text-minang-wine">Doa &amp; Ucapan</h3>
-                <ul className="mt-4 max-h-80 space-y-2.5 overflow-y-auto">
-                  {state.wishes.slice(0, 12).map((w, i) => (
-                    <Enter key={w.id} delay={i * 0.04}>
-                      <li className="rounded-2xl bg-white/85 px-4 py-3 text-minang-night">
-                        <p className="flex items-center gap-1.5 text-sm font-semibold text-minang-wine">
-                          <Heart size={13} className="fill-minang-wine" /> {w.name}
-                        </p>
-                        <p className="mt-0.5 text-sm">{w.message}</p>
-                      </li>
-                    </Enter>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {invitation.gift?.number && (
-              <Enter className="mx-auto mt-8 max-w-md rounded-3xl bg-minang-wine p-6 text-center text-white">
-                <Gift className="mx-auto text-minang-glow" />
-                <p className="mt-2 font-script text-4xl text-minang-glow">Kirim Hadiah</p>
-                <p className="mt-2 text-sm leading-relaxed text-white/90">Doa restu Anda sudah sangat berarti. Bila berkenan memberi tanda kasih, Anda dapat mengirimkannya secara nontunai.</p>
-                <button onClick={() => setGiftOpen(!giftOpen)} aria-expanded={giftOpen} className="mt-4 rounded-lg bg-minang-gold px-5 py-2 text-sm text-minang-night">
-                  {giftOpen ? "Tutup rekening" : "Lihat rekening"}
-                </button>
-                <AnimatePresence>
-                  {giftOpen && (
-                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                      <div className="mt-4 rounded-2xl bg-white/10 p-4">
-                        <p className="text-sm text-white/85">{invitation.gift.bank}</p>
-                        <p className="mt-1 text-xl tracking-wider text-minang-glow">{invitation.gift.number}</p>
-                        <p className="text-sm text-white/85">a.n. {invitation.gift.holder}</p>
-                        <button onClick={copyAccount} className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-minang-gold px-3 py-1.5 text-xs">
-                          {copied ? <Check size={13} /> : <Copy size={13} />} {copied ? "Tersalin" : "Salin nomor"}
-                        </button>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+        {!opened && <div className={screen} />}
+
+        {opened && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }} className="overflow-x-clip">
+            <CinematicHero bride={bride} groom={groom} date={wedding.date} heightClass={screen} />
+
+            {/* Kutipan */}
+            <section className="relative overflow-hidden bg-[#e3c0ca] px-7 py-16">
+              <Wash className="absolute inset-0 h-full w-full" color="#b45f76" />
+              <Enter className="relative rounded-t-full bg-minang-maroon px-7 pt-20 pb-12 text-center">
+                <div className="mx-auto w-40">
+                  <RumahGadang />
+                </div>
+                {invitation.quote && (
+                  <>
+                    <p className="mt-6 text-[15px] leading-relaxed text-white">{invitation.quote}</p>
+                    <p className="mt-3 text-sm text-minang-gold">{invitation.quoteSource}</p>
+                  </>
+                )}
               </Enter>
-            )}
-          </motion.section>
+            </section>
 
-          {/* Penutup */}
-          <section className="relative overflow-hidden bg-minang-night px-6 pt-14 pb-24 text-center">
-            <div className="bg-songket absolute inset-0" />
-            <Enter from="zoom" className="relative mx-auto max-w-sm">
-              <div className="mx-auto w-32">
-                <RumahGadang />
+            <div id="m-mempelai" className="overflow-x-clip">
+              <CoupleCard side="right" tone="rose" title="Pengantin Wanita" name={bride} parents={invitation.brideParents} photo={photos.bride} instagram={invitation.brideInstagram} />
+              <CoupleCard side="left" tone="wine" title="Pengantin Pria" name={groom} parents={invitation.groomParents} photo={photos.groom} instagram={invitation.groomInstagram} />
+            </div>
+
+            {/* Hari bahagia dan acara */}
+            <section id="m-acara" className="relative overflow-hidden bg-minang-night px-7 pt-16 pb-14">
+              <div className="bg-songket absolute inset-0" />
+              <div className="relative">
+                <Enter className="mx-auto w-44">
+                  <RumahGadang />
+                </Enter>
+                {wedding.date && (
+                  <Enter className="mt-7">
+                    <p className="text-center font-script text-5xl text-minang-gold">Hari Bahagia</p>
+                    <Countdown date={wedding.date} />
+                  </Enter>
+                )}
+                <Enter className="mt-8">
+                  <p className="text-center text-[15px] leading-relaxed text-white/95">{invitation.opening}</p>
+                </Enter>
+                <div className="mt-12 space-y-14">
+                  {visibleEvents.map((e) => (
+                    <EventBlock key={e.id} title={e.name} date={e.date} time={`${e.start} - ${e.end} WIB`} venue={e.venue} address={e.address} mapsUrl={e.mapsUrl} />
+                  ))}
+                </div>
+                {invitation.streamUrl && (
+                  <Enter className="mt-14 rounded-3xl border border-minang-gold/60 p-7 text-center">
+                    <p className="font-script text-5xl text-minang-gold">Siaran Langsung</p>
+                    <p className="mt-3 text-[15px] leading-relaxed text-white/95">Saksikan acara kami secara daring melalui tautan berikut.</p>
+                    <a href={invitation.streamUrl} target="_blank" rel="noreferrer" className="mt-5 inline-flex items-center gap-2 rounded-lg bg-minang-gold px-6 py-2.5 text-minang-night">
+                      <Radio size={16} /> Gabung Siaran
+                    </a>
+                  </Enter>
+                )}
               </div>
-              <p className="mt-5 text-[15px] leading-relaxed text-white/90">{invitation.closing}</p>
-              <p className="mt-6 text-sm text-white/70">Kami yang berbahagia,</p>
-              <p className="mt-1 font-script text-5xl leading-tight text-minang-glow">
-                {bride} &amp; {groom}
-              </p>
-            </Enter>
-          </section>
+            </section>
 
-          {/* Menu bawah dan tombol musik */}
-          <div className="sticky bottom-0 z-30">
-            <motion.button
-              onClick={toggleMusic}
-              animate={playing ? { rotate: 360 } : { rotate: 0 }}
-              transition={playing ? { duration: 4, repeat: Infinity, ease: "linear" } : { duration: 0.3 }}
-              className="absolute -top-12 right-3 flex h-10 w-10 items-center justify-center rounded-full border border-minang-gold bg-minang-night text-minang-glow"
-              aria-label={playing ? "Matikan musik" : "Putar musik"}
-              aria-pressed={playing}
-            >
-              {playing ? <Volume2 size={18} /> : <VolumeX size={18} />}
-            </motion.button>
-            <nav className="grid grid-cols-5 border-t border-minang-gold/50 bg-minang-night/95 backdrop-blur" aria-label="Bagian undangan">
-              {NAV.map(({ id, label, icon: Icon }) => (
-                <button key={id} onClick={() => goTo(id)} aria-label={label} aria-current={active === id ? "true" : undefined} className={cn("relative flex justify-center py-3 transition-colors", active === id ? "text-minang-glow" : "text-white/55")}>
-                  {active === id && <motion.span layoutId="minang-nav" className="absolute inset-x-3 top-0 h-0.5 rounded-full bg-minang-gold" />}
-                  <Icon size={20} />
-                </button>
-              ))}
-            </nav>
-          </div>
-        </>
-      )}
+            {/* Galeri dan kisah */}
+            {(gallery.length > 0 || story.length > 0) && (
+              <section id="m-kisah" className="relative overflow-hidden bg-minang-wine px-7 py-16">
+                <EngravedScene className="absolute inset-0 h-full w-full text-[#5a0f28] opacity-40" />
+                <div className="relative">
+                  {gallery.length > 0 && (
+                    <div className="mb-14">
+                      <Enter>
+                        <p className="text-center font-script text-5xl text-minang-gold">Momen Kami</p>
+                      </Enter>
+                      <div className="mt-7 grid grid-cols-2 gap-3">
+                        {gallery.map((src, i) => (
+                          <Enter key={i} from={i % 2 ? "right" : "left"} className="aspect-[3/4] overflow-hidden rounded-xl">
+                            <Photo src={src} alt={`Momen ${i + 1}`} fallback="" />
+                          </Enter>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {story.length > 0 && (
+                    <Enter className="rounded-3xl bg-minang-night/80 p-6">
+                      <p className="text-center font-script text-5xl text-minang-gold">Kisah Kami</p>
+                      <ol className="mt-7 space-y-7 overflow-x-clip">
+                        {story.map((s, i) => (
+                          <Enter key={s.id} from={i % 2 ? "left" : "right"} className={cn("border-minang-gold/70 text-[15px]", i % 2 ? "border-l-2 pl-4" : "border-r-2 pr-4 text-right")}>
+                            <li>
+                              <p className="font-script text-3xl leading-tight text-white">{s.title}</p>
+                              <p className="text-sm text-minang-gold">{s.date}</p>
+                              <p className="mt-2 leading-relaxed text-white/95">{s.text}</p>
+                            </li>
+                          </Enter>
+                        ))}
+                      </ol>
+                    </Enter>
+                  )}
+                </div>
+              </section>
+            )}
+
+            {/* Ucapan, RSVP, hadiah */}
+            <section id="m-ucapan" className="relative overflow-hidden bg-[#e9ccd4] px-7 py-16">
+              <Wash className="absolute inset-0 h-full w-full" color="#b45f76" />
+              <div className="relative">
+                <Enter>
+                  <RsvpForm guest={guest} mode={mode} theme={RSVP_THEME} onRsvp={onRsvp} />
+                </Enter>
+                {state.wishes.length > 0 && (
+                  <Enter className="mt-8 rounded-3xl bg-minang-maroon p-5">
+                    <h3 className="text-center font-script text-5xl text-minang-gold">Doa &amp; Ucapan</h3>
+                    <ul className="mt-4 max-h-80 space-y-2.5 overflow-y-auto pr-1">
+                      {state.wishes.slice(0, 12).map((w) => (
+                        <li key={w.id} className="rounded-2xl bg-white/95 px-4 py-3 text-minang-night">
+                          <p className="flex items-center gap-1.5 text-sm font-semibold text-minang-wine">
+                            <Heart size={13} className="fill-minang-wine" /> {w.name}
+                          </p>
+                          <p className="mt-0.5 text-sm">{w.message}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  </Enter>
+                )}
+                {invitation.gift?.number && (
+                  <Enter className="mt-8 rounded-3xl bg-minang-maroon p-6 text-center">
+                    <Gift className="mx-auto text-minang-gold" />
+                    <p className="mt-2 font-script text-5xl text-minang-gold">Kirim Hadiah</p>
+                    <p className="mt-2 text-sm leading-relaxed text-white/95">Doa restu Anda sudah sangat berarti. Bila berkenan memberi tanda kasih, Anda dapat mengirimkannya secara nontunai.</p>
+                    <button onClick={() => setGiftOpen(!giftOpen)} aria-expanded={giftOpen} className="mt-4 rounded-lg bg-minang-gold px-5 py-2 text-sm text-minang-night">
+                      {giftOpen ? "Tutup rekening" : "Lihat rekening"}
+                    </button>
+                    <AnimatePresence>
+                      {giftOpen && (
+                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                          <div className="mt-4 rounded-2xl bg-white/10 p-4">
+                            <p className="text-sm text-white/85">{invitation.gift.bank}</p>
+                            <p className="mt-1 text-xl tracking-wider text-minang-gold">{invitation.gift.number}</p>
+                            <p className="text-sm text-white/85">a.n. {invitation.gift.holder}</p>
+                            <button onClick={copyAccount} className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-minang-gold px-3 py-1.5 text-xs">
+                              {copied ? <Check size={13} /> : <Copy size={13} />} {copied ? "Tersalin" : "Salin nomor"}
+                            </button>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </Enter>
+                )}
+              </div>
+            </section>
+
+            {/* Penutup */}
+            <section className="relative overflow-hidden bg-[#e9ccd4] px-7 pb-24">
+              <Wash className="absolute inset-0 h-full w-full" color="#b45f76" />
+              <Enter className="relative rounded-3xl bg-minang-maroon px-6 py-10 text-center">
+                <p className="text-[15px] leading-relaxed text-white">{invitation.closing}</p>
+                <p className="mt-6 text-sm text-white/80">Kami yang berbahagia,</p>
+                <p className="mt-1 font-script text-5xl leading-tight break-words text-minang-gold">
+                  {bride} &amp; {groom}
+                </p>
+                <div className="mx-auto mt-6 w-32">
+                  <RumahGadang />
+                </div>
+              </Enter>
+            </section>
+
+            {/* Menu bawah dan tombol musik */}
+            <div className="sticky bottom-0 z-30">
+              <motion.button
+                onClick={toggleMusic}
+                animate={playing ? { rotate: 360 } : { rotate: 0 }}
+                transition={playing ? { duration: 4, repeat: Infinity, ease: "linear" } : { duration: 0.3 }}
+                className="absolute -top-12 right-3 flex h-10 w-10 items-center justify-center rounded-full bg-minang-gold text-minang-night"
+                aria-label={playing ? "Matikan musik" : "Putar musik"}
+                aria-pressed={playing}
+              >
+                {playing ? <Volume2 size={18} /> : <VolumeX size={18} />}
+              </motion.button>
+              <nav className="grid grid-cols-5 bg-minang-night/95" aria-label="Bagian undangan">
+                {NAV.map(({ id, label, icon: Icon }) => (
+                  <button key={id} onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" })} aria-label={label} className="flex justify-center py-3.5 text-minang-glow">
+                    <Icon size={21} strokeWidth={1.6} />
+                  </button>
+                ))}
+              </nav>
+            </div>
+          </motion.div>
+        )}
+      </div>
     </div>
   );
 }
